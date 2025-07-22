@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "ts-node ./bin/www.ts"
+    "start": "node ./dist/bin/www.js",
+    build": "tsc && cpx \"./views/**/*\" \"./dist/views\" && cpx \"./public/**/*\" \"./dist/public\",
+
+    "prestart": "npm run build"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -23,6 +26,7 @@
     "@types/node": "^24.0.15",
     "@types/pg": "^8.0.0",
     "@types/socket.io": "^3.0.1",
+    "cpx": "^1.5.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
