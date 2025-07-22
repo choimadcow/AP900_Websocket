@@ -611,9 +611,54 @@ const tempDatas = [
     }
 ];
 
-let lastMockData: any = null;
+interface MockData {
+    dispInfo: {
+        gpsInfo: {
+            latitude: number;
+            longitude: number;
+        };
+        egoInfo: {
+            egoVehicleSpeedMps: number;
+            energyLevel: number;
+            gear: number;
+            brake: number;
+            turnSignal: number;
+            steeringAngleDeg: number;
+        };
+        extraInfos: string[];
+        controlInfo: {
+            operation_mode: number;
+            system_off_reason: number;
+            auto_available: boolean;
+            sensor_status: number;
+        };
+        laneChange: {
+            direction: number;
+            process: number;
+        };
+        TurnByTurnInfo: {
+            maneuver: string;
+            distance: number;
+        };
+        vehicleID: string;
+        messageTime: number;
+        targetInfo: {
+            targetAvailable: boolean;
+        };
+    };
+    event: {
+        eventType: number;
+        Content: string;
+    };
+    isStationChanged: boolean;
+    isStation: boolean;
+    isAuto: boolean;
+    isPedestrian: boolean;
+}
 
-export const createMockData = (isContinuous?: boolean, forceStationChanged?: boolean) => {
+let lastMockData: MockData | null = null;
+
+export const createMockData = (isContinuous?: boolean, forceStationChanged?: boolean): MockData => {
     if (!isContinuous) {
         const randomNumber = Math.floor(Math.random() * tempDatas.length);
         const thisStop = tempDatas[randomNumber];
@@ -717,7 +762,7 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
             distance: +(Math.random() * 999).toFixed(0)
         };
         lastMockData.dispInfo.messageTime = Date.now();
-        lastMockData.isStationChanged = forceStationChanged;
+        lastMockData.isStationChanged = forceStationChanged ?? false;
     } else {
         console.warn("No previous data. Generating fresh.");
         return createMockData(false);
