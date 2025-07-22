@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+  ul#messages
+  script(src='/socket.io/socket.io.js')
+  script.
+    const socket = io();
+    const messages = document.getElementById('messages');
+
+    socket.on('message', (msg) => {
+      const item = document.createElement('li');
+      item.textContent = msg;
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+    });
