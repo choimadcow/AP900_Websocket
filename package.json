@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./dist/bin/www.js",
-    build": "tsc && cpx \"./views/**/*\" \"./dist/views\" && cpx \"./public/**/*\" \"./dist/public\",
-
+    "build": "tsc && cpx \"./views/**/*\" \"./dist/views\" && cpx \"./public/**/*\" \"./dist/public\"",
     "prestart": "npm run build"
   },
   "dependencies": {
