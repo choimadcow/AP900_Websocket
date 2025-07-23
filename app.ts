@@ -5,13 +5,13 @@ import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import cors from 'cors'; // CORS 미들웨어 추가
 
-import indexRouter from './routes/index';
+// import indexRouter from './routes/index';
 import usersRouter from './routes/users';
 
 const app = express();
 
 // CORS 미들웨어 추가 (모든 출처 허용)
-app.use(cors());
+app.use(cors({ origin: '*' }));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -48,60 +48,33 @@ app.get('/:param', (req, res) => {
             res.send('send command sent');
             break;
         case 'start':
-            if (timer) {
+            if (timer || timer2) {
                 res.send('Already running');
             } else {
                 createMockData(false, false); // 초기화
                 timer = setInterval(() => {
                     const payload = createMockData(true);
-                    broadcastMessage(JSON.stringify(payload)); // Changed from io.emit
+                    broadcastMessage(JSON.stringify(payload));
                 }, 100);
-                res.send('start command sent');
-            }
-            if (timer2) {
-                res.send('Already running');
-            } else {
-                createMockData(false, true); // 초기화
 
-                const minDelay = 1 * 1000;
+                createMockData(false, true); // 초기화
+                const minDelay = 1000;
                 const maxDelay = 1.5 * 1000;
 
                 const scheduleNext = () => {
                     const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-
                     timer2 = setTimeout(() => {
                         const payload = createMockData(false, true);
-                        broadcastMessage(JSON.stringify(payload)); // Changed from io.emit
+                        broadcastMessage(JSON.stringify(payload));
                         scheduleNext();
                     }, randomDelay);
-                }
-
+                };
                 scheduleNext();
-                res.send('slow command sent');
+                
+                res.send('start and slow commands sent');
             }
             break;
         case 'slow':
-            // if (timer2) {
-            //     res.send('Already running');
-            // } else {
-            //     createMockData(false, true); // 초기화
-            //
-            //     const minDelay = 1 * 1000;
-            //     const maxDelay = 1.5 * 1000;
-            //
-            //     const scheduleNext = () => {
-            //         const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-            //
-            //         timer2 = setTimeout(() => {
-            //             const payload = createMockData(false, true);
-            //             broadcastMessage(JSON.stringify(payload)); // Changed from io.emit
-            //             scheduleNext();
-            //         }, randomDelay);
-            //     }
-            //
-            //     scheduleNext();
-            //     res.send('slow command sent');
-            // }
             break;
         case 'stop':
             if (timer) {
@@ -131,7 +104,7 @@ app.use(function (req: Request, res: Response, next: NextFunction) {
 });
 
 // error handler
-app.use(function (err: any, req: Request, res: Response, next: NextFunction) {
+app.use(function (err: any, req: Request, res: Response) {
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
