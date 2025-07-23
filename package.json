@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./dist/bin/www.js",
-    "build": "tsc && npx cpx \"./views/**/*\" \"./dist/views\" && npx cpx \"./public/**/*\" \"./dist/public\"",
+    "build": "tsc && node ./dist/copy-assets.js",
     "prestart": "npm run build"
   },
   "dependencies": {
