@@ -3,11 +3,15 @@ import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
+import cors from 'cors'; // CORS 미들웨어 추가
 
 import indexRouter from './routes/index';
 import usersRouter from './routes/users';
 
 const app = express();
+
+// CORS 미들웨어 추가 (모든 출처 허용)
+app.use(cors());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
