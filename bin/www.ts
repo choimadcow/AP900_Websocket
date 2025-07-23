@@ -25,7 +25,7 @@ app.set('port', port);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3001", // 모든 출처 허용. 특정 출처만 허용하려면 'http://localhost:3001' 등으로 변경
+    origin: ["http://localhost:3001", "http://192.168.0.18:3001", "*"], // 모든 출처 허용. 특정 출처만 허용하려면 'http://localhost:3001' 등으로 변경
     methods: ["GET", "POST"] // 허용할 HTTP 메서드
   }
 });
