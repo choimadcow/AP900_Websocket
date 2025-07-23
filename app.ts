@@ -28,6 +28,10 @@ import {createMockData} from './services/mock-data';
 let timer: NodeJS.Timeout | null = null;
 let timer2: NodeJS.Timeout | null = null;
 
+app.get("/", () => {
+    console.log("AP900 Websocket Server Connected!");
+});
+
 app.get('/:param', (req, res) => {
     const clients = req.app.get('clients'); // Changed from io
     const param = req.params.param;
