@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./dist/bin/www.js",
-    "build": "tsc && node ./dist/copy-assets.js",
-    "prestart": "npm run build"
+    "build": "tsc && node ./dist/copy-assets.js"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.9",
