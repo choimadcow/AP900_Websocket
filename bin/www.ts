@@ -7,7 +7,7 @@
 import app from '../app';
 import debug from 'debug';
 import http from 'http';
-import { Server } from 'socket.io';
+import { WebSocketServer, WebSocket } from 'ws';
 
 const log = debug('ap900-websocket:server');
 
@@ -23,22 +23,30 @@ app.set('port', port);
  */
 
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: ["http://localhost:3001", "http://192.168.0.18:3001", "*"], // 모든 출처 허용. 특정 출처만 허용하려면 'http://localhost:3001' 등으로 변경
-    methods: ["GET", "POST"] // 허용할 HTTP 메서드
-  }
-});
+const wss = new WebSocketServer({ server });
+const clients = new Set<WebSocket>(); // To store connected WebSocket clients
 
-io.on('connection', (socket) => {
-  console.log('a user connected');
+wss.on('connection', (ws: WebSocket) => {
+  clients.add(ws);
+  console.log('A WebSocket client connected');
 
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
+  ws.on('message', (message: Buffer) => {
+    // Handle messages from clients if needed
+    console.log('Received message from client:', message.toString());
+  });
+
+  ws.on('close', () => {
+    clients.delete(ws);
+    console.log('A WebSocket client disconnected');
+  });
+
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
   });
 });
 
-app.set('io', io);
+app.set('wss', wss);
+app.set('clients', clients);
 
 /**
  * Listen on provided port, on all network interfaces.

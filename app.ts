@@ -29,13 +29,22 @@ let timer: NodeJS.Timeout | null = null;
 let timer2: NodeJS.Timeout | null = null;
 
 app.get('/:param', (req, res) => {
-  const io = req.app.get('io');
+  const clients = req.app.get('clients'); // Changed from io
   const param = req.params.param;
+
+  // Helper function to send message to all connected clients
+  const broadcastMessage = (message: string) => {
+    clients.forEach((client: any) => { // client type is WebSocket from 'ws'
+      if (client.readyState === client.OPEN) {
+        client.send(message);
+      }
+    });
+  };
 
   switch (param) {
     case 'send':
       const payload = createMockData(false, true);
-      io.emit('message', JSON.stringify(payload));
+      broadcastMessage(JSON.stringify(payload)); // Changed from io.emit
       res.send('send command sent');
       break;
     case 'start':
@@ -45,7 +54,7 @@ app.get('/:param', (req, res) => {
         createMockData(false, false); // 초기화
         timer = setInterval(() => {
           const payload = createMockData(true);
-          io.emit('message', JSON.stringify(payload));
+          broadcastMessage(JSON.stringify(payload)); // Changed from io.emit
         }, 100);
         res.send('start command sent');
       }
@@ -64,7 +73,7 @@ app.get('/:param', (req, res) => {
 
                 timer2 = setTimeout(() => {
                     const payload = createMockData(false, true);
-                    io.emit('message', JSON.stringify(payload));
+                    broadcastMessage(JSON.stringify(payload)); // Changed from io.emit
                     scheduleNext();
                 }, randomDelay);
             }
@@ -85,7 +94,7 @@ app.get('/:param', (req, res) => {
       res.send('stop command sent');
       break;
     case 'error':
-      io.emit('message', 'error command received');
+      broadcastMessage('error command received'); // Changed from io.emit
       res.send('error command sent');
       break;
     default:
