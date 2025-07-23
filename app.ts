@@ -34,6 +34,7 @@ app.get('/:param', (req, res) => {
 
   // Helper function to send message to all connected clients
   const broadcastMessage = (message: string) => {
+      console.log("broadcast Message >> ", message);
     clients.forEach((client: any) => { // client type is WebSocket from 'ws'
       if (client.readyState === client.OPEN) {
         client.send(message);
