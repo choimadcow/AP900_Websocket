@@ -40,7 +40,7 @@ wss.on('connection', (ws: WebSocket) => {
     console.log('A WebSocket client disconnected');
   });
 
-  ws.on('error', (error) => {
+  ws.on('error', (error: Error) => {
     console.error('WebSocket error:', error);
   });
 });
