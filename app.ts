@@ -32,7 +32,21 @@ app.get("/", () => {
     console.log("AP900 Websocket Server Connected!");
 });
 
-app.get('/:param', (req, res) => {
+const allowedIps = ['192.168.0.18', '::1', '127.0.0.1'];
+
+const ipFilter = (req: Request, res: Response, next: NextFunction) => {
+    const clientIp = req.ip;
+
+    if (clientIp && allowedIps.includes(clientIp)) {
+        next();
+    } else {
+        res.status(403).send('Forbidden: Access is denied');
+    }
+};
+
+app.use(ipFilter);
+
+app.get("/:param", (req, res) => {
     const clients = req.app.get('clients'); // Changed from io
     const param = req.params.param;
 
