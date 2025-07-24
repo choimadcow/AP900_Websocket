@@ -33,11 +33,21 @@ app.get("/", () => {
     console.log("AP900 Websocket Server Connected!");
 });
 
-const allowedIps = ['192.168.0.18', '::1', '127.0.0.1'];
+const allowedIps = ['::1', '127.0.0.1']; // 허용할 실제 공인 IP를 여기에 추가하세요.
 
 const ipFilter = (req: Request, res: Response, next: NextFunction) => {
-    const clientIp = req.ip;
-    console.log('Attempting access from IP:', clientIp);
+    const forwardedFor = req.headers['x-forwarded-for'];
+    let clientIp: string | undefined;
+
+    if (typeof forwardedFor === 'string') {
+        // X-Forwarded-For 헤더가 있으면, 가장 첫 번째 IP를 실제 클라이언트 IP로 간주합니다.
+        clientIp = forwardedFor.split(',')[0].trim();
+    } else {
+        // 헤더가 없으면 req.ip를 사용합니다 (로컬 개발 환경 등).
+        clientIp = req.ip;
+    }
+
+    console.log(`Access attempt. Real Client IP: ${clientIp}, X-Forwarded-For: ${forwardedFor}, req.ip: ${req.ip}`);
 
     if (clientIp && allowedIps.includes(clientIp)) {
         next();
