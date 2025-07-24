@@ -9,6 +9,7 @@ import cors from 'cors'; // CORS 미들웨어 추가
 import usersRouter from './routes/users';
 
 const app = express();
+app.set('trust proxy', 1);
 
 // CORS 미들웨어 추가 (모든 출처 허용)
 app.use(cors({origin: "192.168.0.18"}));
@@ -36,6 +37,7 @@ const allowedIps = ['192.168.0.18', '::1', '127.0.0.1'];
 
 const ipFilter = (req: Request, res: Response, next: NextFunction) => {
     const clientIp = req.ip;
+    console.log('Attempting access from IP:', clientIp);
 
     if (clientIp && allowedIps.includes(clientIp)) {
         next();
