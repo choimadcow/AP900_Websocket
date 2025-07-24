@@ -11,7 +11,7 @@ import usersRouter from './routes/users';
 const app = express();
 
 // CORS 미들웨어 추가 (모든 출처 허용)
-app.use(cors({ origin: '*' }));
+app.use(cors({origin: "192.168.0.18"}));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
