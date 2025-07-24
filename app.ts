@@ -12,7 +12,7 @@ const app = express();
 app.set('trust proxy', 1);
 
 // CORS 미들웨어 추가 (모든 출처 허용)
-app.use(cors({origin: "192.168.0.18"}));
+app.use(cors());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -33,7 +33,7 @@ app.get("/", () => {
     console.log("AP900 Websocket Server Connected!");
 });
 
-const allowedIps = ['::1', '127.0.0.1']; // 허용할 실제 공인 IP를 여기에 추가하세요.
+const allowedIps = ['14.34.84.138', '::1', '127.0.0.1']; // 허용할 실제 공인 IP를 여기에 추가하세요.
 
 const ipFilter = (req: Request, res: Response, next: NextFunction) => {
     const forwardedFor = req.headers['x-forwarded-for'];
