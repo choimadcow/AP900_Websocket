@@ -747,7 +747,7 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
                     targetAvailable: Math.random() > 0.5
                 }
             },
-            event: {
+            event: lastMockData ? lastMockData!.event : {
                 eventType: 129, // OperatorInput
                 Content: JSON.stringify({
                     type: ["PassengerCountUpdate", "TakeOverReason", "BusOperation"][
