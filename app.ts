@@ -25,7 +25,7 @@ app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-import {changeDriveMode, createMockData, changeStatus, SENSOR_FAIL_CODES} from './services/mock-data';
+import {changeDriveMode, createMockData, changeStatus, SENSOR_FAIL_CODES, createDriverMessageEvent} from './services/mock-data';
 
 let timer: NodeJS.Timeout | null = null;
 let timer2: NodeJS.Timeout | null = null;
@@ -242,6 +242,36 @@ app.get("/change-status/:param", (req: Request, res: Response) => {
     } else {
         res.status(500).json({ message: "Internal server error: Status code or turnOn not determined." });
     }
+});
+
+app.get("/send-driver-message/:icon", (req: Request, res: Response) => {
+    const clients = req.app.get('clients');
+    const icon = req.params.icon;
+    let message: string;
+
+    switch (icon) {
+        case "red":
+            message = "<span style='color:red;'>주행경로를 이탈</span>했습니다.<br>운전대를 잡아주시길 바랍니다";
+            break;
+        case "yellow":
+            message = "<span style='color:yellow;'>교통약자보호구역</span> 입니다<br>운전대를 잡아주시길 바랍니다";
+            break;
+        case "green":
+            message = "현재 자율운행을 하고 있습니다<br><span style='color:green;'>편안한 운전</span> 하시길 바랍니다";
+            break;
+        default:
+            return res.status(400).json({ message: "Invalid icon parameter. Use 'red', 'yellow', or 'green'." });
+    }
+    
+    const payload = createDriverMessageEvent(icon, message);
+    
+    clients.forEach((client: any) => {
+        if (client.readyState === client.OPEN) {
+            client.send(JSON.stringify(payload));
+        }
+    });
+    
+    res.status(200).json({ message: `DriverMessage with icon '${icon}' sent successfully.` });
 });
 
 // catch 404 and forward to error handler

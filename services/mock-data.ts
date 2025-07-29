@@ -819,3 +819,31 @@ export const changeStatus = (statusCode: number, turnOn: boolean): MockData => {
 
     return lastMockData!;
 }
+
+export const createDriverMessageEvent = (icon: string, message: string): MockData => {
+    if (!lastMockData) {
+        // lastMockData가 없으면 기본 데이터 생성
+        createMockData(false);
+    }
+
+    const driverMessageEvent = {
+        eventType: 2, // DriverMessage
+        Content: JSON.stringify({
+            icon: icon,
+            content: message
+        })
+    };
+
+    // lastMockData를 기반으로 새로운 이벤트 객체를 포함한 MockData 생성
+    const newMockData: MockData = {
+        ...lastMockData!, // 기존 데이터 복사
+        event: driverMessageEvent, // 이벤트 부분만 교체
+        dispInfo: {
+            ...lastMockData!.dispInfo,
+            messageTime: Date.now() // 메시지 시간 갱신
+        }
+    };
+    
+    lastMockData = newMockData; // lastMockData 업데이트
+    return newMockData;
+}

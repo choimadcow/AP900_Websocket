@@ -142,6 +142,20 @@
                 <div class="toggle-text" onclick="fetch('/stop')">정지</div>
             </div>
         </div>
+
+        <hr style="margin: 1rem"/>
+
+        <div class="grid-container">
+            <div class="toggle-wrapper">
+                <div style="color: red;" class="toggle-text" onclick="fetch('/send-driver-message/red')">RED</div>
+            </div>
+            <div class="toggle-wrapper">
+                <div style="color: yellow" class="toggle-text" onclick="fetch('/send-driver-message/yellow')">YELLOW</div>
+            </div>
+            <div class="toggle-wrapper">
+                <div style="color: green" class="toggle-text" onclick="fetch('/send-driver-message/green')">GREEN</div>
+            </div>
+        </div>
     </div>
 
     <script>
