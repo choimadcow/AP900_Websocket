@@ -151,82 +151,82 @@ app.get("/change-status/:param", (req: Request, res: Response) => {
     switch (param) {
         case 'radar-on':
             statusCode = SENSOR_FAIL_CODES.VISION_LIDAR_FAIL;
-            turnOn = false;
+            turnOn = true;
             actionName = "Radar ON";
             break;
         case 'radar-off':
             statusCode = SENSOR_FAIL_CODES.VISION_LIDAR_FAIL;
-            turnOn = true;
+            turnOn = false;
             actionName = "Radar OFF";
             break;
         case 'camera-on':
             statusCode = SENSOR_FAIL_CODES.VISION_CAMERA_FAIL;
-            turnOn = false;
+            turnOn = true;
             actionName = "Camera ON";
             break;
         case 'camera-off':
             statusCode = SENSOR_FAIL_CODES.VISION_CAMERA_FAIL;
-            turnOn = true;
+            turnOn = false;
             actionName = "Camera OFF";
             break;
         case 'gps-on':
             statusCode = SENSOR_FAIL_CODES.VISION_GPS_FAIL;
-            turnOn = false;
+            turnOn = true;
             actionName = "GPS ON";
             break;
         case 'gps-off':
             statusCode = SENSOR_FAIL_CODES.VISION_GPS_FAIL;
-            turnOn = true;
+            turnOn = false;
             actionName = "GPS OFF";
             break;
         case 'recog-on':
             statusCode = SENSOR_FAIL_CODES.VISION_SYSTEM_FAIL; // '인식'에 대한 일반적인 오류
-            turnOn = false;
+            turnOn = true;
             actionName = "Recognition ON";
             break;
         case 'recog-off':
             statusCode = SENSOR_FAIL_CODES.VISION_SYSTEM_FAIL;
-            turnOn = true;
+            turnOn = false;
             actionName = "Recognition OFF";
             break;
         case 'judge-on':
             statusCode = SENSOR_FAIL_CODES.DEVIATE_ROUTE; // '판단'에 대한 예시 오류
-            turnOn = false;
+            turnOn = true;
             actionName = "Judgment ON";
             break;
         case 'judge-off':
             statusCode = SENSOR_FAIL_CODES.DEVIATE_ROUTE;
-            turnOn = true;
+            turnOn = false;
             actionName = "Judgment OFF";
             break;
         case 'ctrl-on':
             statusCode = SENSOR_FAIL_CODES.CONTROL_SYSTEM_FAIL;
-            turnOn = false;
+            turnOn = true;
             actionName = "Control ON";
             break;
         case 'ctrl-off':
             statusCode = SENSOR_FAIL_CODES.CONTROL_SYSTEM_FAIL;
-            turnOn = true;
+            turnOn = false;
             actionName = "Control OFF";
             break;
         case 'internet-on':
             statusCode = SENSOR_FAIL_CODES.INTERNET_FAIL;
-            turnOn = false;
+            turnOn = true;
             actionName = "Internet ON";
             break;
         case 'internet-off':
             statusCode = SENSOR_FAIL_CODES.INTERNET_FAIL;
-            turnOn = true;
+            turnOn = false;
             actionName = "Internet OFF";
             break;
         case 'v2i-on':
             statusCode = SENSOR_FAIL_CODES.V2I_FAIL;
-            turnOn = false;
+            turnOn = true;
             actionName = "V2I ON";
             break;
         case 'v2i-off':
             statusCode = SENSOR_FAIL_CODES.V2I_FAIL;
-            turnOn = true;
+            turnOn = false;
             actionName = "V2I OFF";
             break;
         default:
