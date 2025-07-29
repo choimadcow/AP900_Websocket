@@ -259,6 +259,8 @@ app.get("/send-driver-message/:icon", (req: Request, res: Response) => {
         case "green":
             message = "현재 자율운행을 하고 있습니다<br><span style='color:green;'>편안한 운전</span> 하시길 바랍니다";
             break;
+        case "normal":
+            message = "현재 자율운행을 하고 있지 않습니다.<br><span style='color: blue'>안전운전</span> 하시길 바랍니다.";
         default:
             return res.status(400).json({ message: "Invalid icon parameter. Use 'red', 'yellow', or 'green'." });
     }
