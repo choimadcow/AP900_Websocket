@@ -726,7 +726,7 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
                 ],
                 controlInfo: {
                     // 자율/수동 상태, 오류 여부, 자율 가능 여부
-                    operation_mode: 0, // 1: 자율, 0: 수동
+                    operation_mode: lastMockData ? lastMockData.dispInfo.controlInfo.operation_mode : 0, // 1: 자율, 0: 수동
                     system_off_reason: 0, // NONE
                     auto_available: Math.random() > 0.1,
                     sensor_status: lastMockData ? lastMockData.dispInfo.controlInfo.sensor_status : SENSOR_FAIL_CODES.FAULT_NONE
