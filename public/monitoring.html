@@ -174,7 +174,7 @@
         <hr style="margin: 1rem"/>
 
         <div id="passenger-count-display">승객 수: N/A</div>
-
+        <div id="error-info-display">발생한 오류: N/A</div>
     </div>
 
     <script>
@@ -268,10 +268,36 @@
             }
         }
 
+        async function fetchErrorType() {
+            try {
+                const response = await fetch('/monitoring/api/error-info');
+                const data = await response.json();
+                const displayElement = document.getElementById('error-info-display');
+                if (displayElement) {
+                    if (data.errInfo !== null) {
+                        displayElement.textContent = `발생한 오류 ${data.errInfo ? "객체인식오류" : "Take Over"}`;
+                    } else {
+                        displayElement.textContent = '발생한 오류: 없음';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching error info:', error);
+                const displayElement = document.getElementById('error-info-display');
+                if (displayElement) {
+                    displayElement.textContent = '발생한 오류는 없는데 오류 발생';
+                }
+            }
+        }
+
         // Fetch passenger count initially and then every 5 seconds
         document.addEventListener('DOMContentLoaded', () => {
             fetchPassengerCount();
-            setInterval(fetchPassengerCount, 5000); // Refresh every 5 seconds
+            fetchErrorType();
+
+            setInterval(() => {
+                fetchPassengerCount();
+                fetchErrorType();
+            }, 5000); // Refresh every 5 seconds
         });
 
     </script>
