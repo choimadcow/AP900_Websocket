@@ -652,7 +652,6 @@ interface MockData {
     };
     isStationChanged: boolean;
     isStation: boolean;
-    isAuto: boolean;
     isPedestrian: boolean;
 }
 
@@ -744,7 +743,6 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
             },
             isStationChanged: true,
             isStation: Math.random() >= 0.5,
-            isAuto: Math.random() >= 0.5,
             isPedestrian: Math.random() >= 0.5
         };
     } else if (lastMockData) {
@@ -769,4 +767,14 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
     }
 
     return lastMockData;
+};
+
+export const changeDriveMode = (autoMode: boolean): MockData => {
+    if (!lastMockData) {
+        createMockData(false);
+    }
+
+    lastMockData!.dispInfo.controlInfo.operation_mode = autoMode ? 1 : 0;
+
+    return lastMockData!;
 };

@@ -24,7 +24,7 @@ app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-import {createMockData} from './services/mock-data';
+import {changeDriveMode, createMockData} from './services/mock-data';
 
 let timer: NodeJS.Timeout | null = null;
 let timer2: NodeJS.Timeout | null = null;
@@ -60,10 +60,32 @@ app.use(ipFilter);
 
 app.get("/auto-start", (req: Request, res: Response) => {
     console.log("자율주행 운행 시작!");
+    const clients = req.app.get('clients');
+    const updatedMockData = changeDriveMode(true);
+    const broadcastMessage = (message: string) => {
+        clients.forEach((client: any) => { // client type is WebSocket from 'ws'
+            if (client.readyState === client.OPEN) {
+                client.send(message);
+            }
+        });
+    };
+
+    broadcastMessage(JSON.stringify(updatedMockData));
 });
 
 app.get("/auto-stop", (req: Request, res: Response) => {
     console.log("자율주행 운행 종료!");
+    const clients = req.app.get('clients');
+    const updatedMockData = changeDriveMode(false);
+    const broadcastMessage = (message: string) => {
+        clients.forEach((client: any) => { // client type is WebSocket from 'ws'
+            if (client.readyState === client.OPEN) {
+                client.send(message);
+            }
+        });
+    };
+
+    broadcastMessage(JSON.stringify(updatedMockData));
 });
 
 app.get("/:param", (req, res) => {
