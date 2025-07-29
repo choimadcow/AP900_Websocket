@@ -783,6 +783,7 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
         };
         lastMockData.dispInfo.messageTime = Date.now();
         lastMockData.isStationChanged = forceStationChanged ?? false;
+        lastMockData.dispInfo.controlInfo.sensor_status = lastMockData ? lastMockData.dispInfo.controlInfo.sensor_status : SENSOR_FAIL_CODES.FAULT_NONE
     } else {
         console.warn("No previous data. Generating fresh.");
         return createMockData(false);
@@ -797,6 +798,7 @@ export const changeDriveMode = (autoMode: boolean): MockData => {
     }
 
     lastMockData!.dispInfo.controlInfo.operation_mode = autoMode ? 1 : 0;
+    lastMockData!.dispInfo.controlInfo.sensor_status = lastMockData ? lastMockData.dispInfo.controlInfo.sensor_status : SENSOR_FAIL_CODES.FAULT_NONE
 
     return lastMockData!;
 };
