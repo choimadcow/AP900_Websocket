@@ -3,7 +3,7 @@ import path from 'path';
 const router = express.Router();
 
 let passengerCount: number | null = null; // 승객 수를 저장할 변수
-let errInfo: Boolean | null = null;
+let errInfo: string | null = null;
 
 /* GET monitoring page. */
 router.get('/', function(req: Request, res: Response) {
@@ -33,10 +33,10 @@ router.get('/error-info/:param', (req: Request, res: Response) => {
   
   let responseMessage: string;
   if (errorTypeString === "OBJ_RECOG_ERR") {
-    errInfo = true; // 객체 인식 오류 상태
+    errInfo = errorTypeString;
     responseMessage = "객체인식오류";
   } else if (errorTypeString === "TAKE_OVER") {
-    errInfo = false; // Take Over 상태
+    errInfo = errorTypeString;
     responseMessage = "Take Over";
   } else {
     res.status(400).send('Invalid error type parameter.');
