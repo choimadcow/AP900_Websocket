@@ -1,3 +1,5 @@
+import {Mock} from "node:test";
+
 const tempDatas = [
     {
         "idx": 1,
@@ -655,6 +657,28 @@ interface MockData {
     isPedestrian: boolean;
 }
 
+// SENSOR_FAIL_CODES 정의
+export const SENSOR_FAIL_CODES = {
+    FAULT_NONE: 0x00000000,
+    CONTROL_SYSTEM_FAIL: 0x00000001, // 제어
+    VISION_SYSTEM_FAIL: 0x00000002, // 인식
+    VISION_CAMERA_FAIL: 0x00000004, // 카메라
+    VISION_GPS_FAIL: 0x00000008, // GPS
+    VISION_CAN_FAIL: 0x00000010, // 제어
+    VISION_NTRIP_FAIL: 0x00000020, // GPS
+    VISION_LIDAR_FAIL: 0x00000040, // LIDAR (Radar)
+    VISION_TLR_FAIL: 0x00000080, // 인식
+    VISION_DETECTOR_FAIL: 0x00000100, // 인식
+    VISION_LOC_INIT_FAIL: 0x00000200, // 인식
+    DEVIATE_ROUTE: 0x00000400, // 판단
+    GPP_FAIL: 0x00000800, // 판단
+    SCHOOL_ZONE_OVERRIDE: 0x00001000, // 13
+    // 추가: 인터넷 및 V2I는 매뉴얼에 직접적인 비트가 없으므로 임의로 할당
+    // 실제 프로토콜에 따라 정확한 비트 값을 확인해야 합니다.
+    INTERNET_FAIL: 0x00002000, // 임의 할당
+    V2I_FAIL: 0x00004000, // 임의 할당
+};
+
 let lastMockData: MockData | null = null;
 
 export const createMockData = (isContinuous?: boolean, forceStationChanged?: boolean): MockData => {
@@ -778,3 +802,20 @@ export const changeDriveMode = (autoMode: boolean): MockData => {
 
     return lastMockData!;
 };
+
+export const changeStatus = (statusCode: number, turnOn: boolean): MockData => {
+    if (!lastMockData) {
+        // lastMockData가 null이면 새로운 데이터를 생성합니다.
+        createMockData(false);
+    }
+
+    if (turnOn) {
+        // 해당 비트를 켭니다.
+        lastMockData!.dispInfo.controlInfo.sensor_status |= statusCode;
+    } else {
+        // 해당 비트를 끕니다.
+        lastMockData!.dispInfo.controlInfo.sensor_status &= ~statusCode;
+    }
+
+    return lastMockData!;
+}

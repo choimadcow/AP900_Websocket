@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <style>
+        body { font-family: sans-serif; }
+        .container { padding: 20px; }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px; /* 간격 늘림 */
+            margin-top: 20px;
+        }
+
+        /* 토글 스위치 스타일 */
+        .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 8px; /* 모서리 둥글게 */
+            padding: 15px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        .toggle-wrapper.active {
+            background-color: #e6ffe6; /* 활성화 시 연한 녹색 배경 */
+            border-color: #4CAF50;
+        }
+
+        .toggle-input {
+            display: none; /* 기본 체크박스 숨기기 */
+        }
+
+        .toggle-label {
+            position: relative;
+            display: inline-block;
+            width: 60px; /* 토글 너비 */
+            height: 34px; /* 토글 높이 */
+            background-color: #ccc;
+            border-radius: 34px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            flex-shrink: 0; /* 텍스트가 길어져도 토글 크기 유지 */
+        }
+
+        .toggle-label:before {
+            content: '';
+            position: absolute;
+            width: 26px; /* 원형 스위치 너비 */
+            height: 26px; /* 원형 스위치 높이 */
+            border-radius: 50%;
+            background-color: white;
+            top: 4px;
+            left: 4px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .toggle-input:checked + .toggle-label {
+            background-color: #4CAF50; /* 활성화 시 녹색 */
+        }
+
+        .toggle-input:checked + .toggle-label:before {
+            transform: translateX(26px); /* 활성화 시 오른쪽으로 이동 */
+        }
+
+        .toggle-text {
+            margin-left: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vehicle Control Panel</h1>
+        <p>Use the toggles below to send commands to the vehicle via WebSocket.</p>
+        
+        <div class="grid-container">
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-auto-start" class="toggle-input" data-endpoint="/change-status/radar-on" data-off-endpoint="/change-status/radar-off">
+                <label for="toggle-auto-start" class="toggle-label"></label>
+                <span class="toggle-text">Radar</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-send" class="toggle-input" data-endpoint="/change-status/camera-on" data-off-endpoint="/change-status/camera-off">
+                <label for="toggle-send" class="toggle-label"></label>
+                <span class="toggle-text">Camera</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-continuous" class="toggle-input" data-endpoint="/change-status/gps-on" data-off-endpoint="/change-status/gps-off">
+                <label for="toggle-continuous" class="toggle-label"></label>
+                <span class="toggle-text">GPS</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-new-hello" class="toggle-input" data-endpoint="/change-status/recog-on" data-off-endpoint="/change-status/recog-off">
+                <label for="toggle-new-hello" class="toggle-label"></label>
+                <span class="toggle-text">인식</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-new-data" class="toggle-input" data-endpoint="/change-status/judge-on" data-off-endpoint="/change-status/judge-off">
+                <label for="toggle-new-data" class="toggle-label"></label>
+                <span class="toggle-text">판단</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-placeholder6" class="toggle-input" data-endpoint="/change-status/ctrl-on" data-off-endpoint="/change-status/ctrl-off">
+                <label for="toggle-placeholder6" class="toggle-label"></label>
+                <span class="toggle-text">제어</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-placeholder7" class="toggle-input" data-endpoint="/change-status/internet-on" data-off-endpoint="/change-status/internet-off">
+                <label for="toggle-placeholder7" class="toggle-label"></label>
+                <span class="toggle-text">인터넷</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-placeholder8" class="toggle-input" data-endpoint="/change-status/v2i-on" data-off-endpoint="/change-status/v2i-off">
+                <label for="toggle-placeholder8" class="toggle-label"></label>
+                <span class="toggle-text">V2I</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function sendCommand(endpoint, toggleElement) {
+            try {
+                const response = await fetch(endpoint);
+                const result = await response.json(); 
+
+                if (!response.ok) {
+                    throw new Error(result.message || `HTTP error! status: ${response.status}`);
+                }
+                
+                console.log(`Command to '${endpoint}' sent successfully:`, result);
+                // alert(`Success: ${result.message}`); // 너무 자주 뜨면 불편하므로 주석 처리
+                
+                // 토글 wrapper에 active 클래스 추가/제거
+                if (toggleElement) {
+                    const wrapper = toggleElement.closest('.toggle-wrapper');
+                    if (wrapper) {
+                        if (toggleElement.checked) {
+                            wrapper.classList.add('active');
+                        } else {
+                            wrapper.classList.remove('active');
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error(`Error sending command to '${endpoint}':`, error);
+                alert(`Failed to send command. ${error.message}`);
+                // 오류 발생 시 토글 상태 되돌리기
+                if (toggleElement) {
+                    toggleElement.checked = !toggleElement.checked;
+                    const wrapper = toggleElement.closest('.toggle-wrapper');
+                    if (wrapper) {
+                        wrapper.classList.remove('active');
+                    }
+                }
+            }
+        }
+
+        document.querySelectorAll('.toggle-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const onEndpoint = this.getAttribute('data-endpoint');
+                const offEndpoint = this.getAttribute('data-off-endpoint');
+                
+                let targetEndpoint = '';
+
+                if (this.checked) {
+                    targetEndpoint = onEndpoint;
+                } else {
+                    // 'off' 상태일 때 off-endpoint가 있으면 사용, 없으면 아무것도 안 함
+                    if (offEndpoint) {
+                        targetEndpoint = offEndpoint;
+                    } else {
+                        // 일회성 이벤트 토글이 꺼질 때는 아무것도 하지 않음
+                        console.log(`Toggle for ${onEndpoint} turned OFF. No action.`);
+                        const wrapper = this.closest('.toggle-wrapper');
+                        if (wrapper) {
+                            wrapper.classList.remove('active');
+                        }
+                        return; 
+                    }
+                }
+
+                if (targetEndpoint) {
+                    sendCommand(targetEndpoint, this);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

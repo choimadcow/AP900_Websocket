@@ -7,6 +7,7 @@ import cors from 'cors'; // CORS 미들웨어 추가
 
 // import indexRouter from './routes/index';
 import usersRouter from './routes/users';
+import monitoringRouter from './routes/monitoring';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -24,12 +25,10 @@ app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-import {changeDriveMode, createMockData} from './services/mock-data';
+import {changeDriveMode, createMockData, changeStatus, SENSOR_FAIL_CODES} from './services/mock-data';
 
 let timer: NodeJS.Timeout | null = null;
 let timer2: NodeJS.Timeout | null = null;
-
-
 
 app.get("/auto-start", (req: Request, res: Response) => {
     console.log("자율주행 운행 시작!");
@@ -44,6 +43,7 @@ app.get("/auto-start", (req: Request, res: Response) => {
     };
 
     broadcastMessage(JSON.stringify(updatedMockData));
+    res.status(200).json({ message: "Auto-start command sent successfully." });
 });
 
 app.get("/auto-stop", (req: Request, res: Response) => {
@@ -59,6 +59,7 @@ app.get("/auto-stop", (req: Request, res: Response) => {
     };
 
     broadcastMessage(JSON.stringify(updatedMockData));
+    res.status(200).json({ message: "Auto-stop command sent successfully." });
 });
 
 app.get("/:param", (req, res) => {
@@ -128,8 +129,118 @@ app.get("/:param", (req, res) => {
             res.status(400).send('Invalid parameter');
     }
 });
+app.use('/monitoring', monitoringRouter);
 
-app.use('/users', usersRouter);
+app.get("/change-status/:param", (req: Request, res: Response) => {
+    const param = req.params.param;
+    const clients = req.app.get('clients');
+
+    const broadcastMessage = (message: string) => {
+        clients.forEach((client: any) => {
+            if (client.readyState === client.OPEN) {
+                client.send(message);
+            }
+        });
+    };
+
+    let statusCode: number | undefined;
+    let turnOn: boolean | undefined;
+    let actionName: string = "";
+
+    switch (param) {
+        case 'radar-on':
+            statusCode = SENSOR_FAIL_CODES.VISION_LIDAR_FAIL;
+            turnOn = true;
+            actionName = "Radar ON";
+            break;
+        case 'radar-off':
+            statusCode = SENSOR_FAIL_CODES.VISION_LIDAR_FAIL;
+            turnOn = false;
+            actionName = "Radar OFF";
+            break;
+        case 'camera-on':
+            statusCode = SENSOR_FAIL_CODES.VISION_CAMERA_FAIL;
+            turnOn = true;
+            actionName = "Camera ON";
+            break;
+        case 'camera-off':
+            statusCode = SENSOR_FAIL_CODES.VISION_CAMERA_FAIL;
+            turnOn = false;
+            actionName = "Camera OFF";
+            break;
+        case 'gps-on':
+            statusCode = SENSOR_FAIL_CODES.VISION_GPS_FAIL;
+            turnOn = true;
+            actionName = "GPS ON";
+            break;
+        case 'gps-off':
+            statusCode = SENSOR_FAIL_CODES.VISION_GPS_FAIL;
+            turnOn = false;
+            actionName = "GPS OFF";
+            break;
+        case 'recog-on':
+            statusCode = SENSOR_FAIL_CODES.VISION_SYSTEM_FAIL; // '인식'에 대한 일반적인 오류
+            turnOn = true;
+            actionName = "Recognition ON";
+            break;
+        case 'recog-off':
+            statusCode = SENSOR_FAIL_CODES.VISION_SYSTEM_FAIL;
+            turnOn = false;
+            actionName = "Recognition OFF";
+            break;
+        case 'judge-on':
+            statusCode = SENSOR_FAIL_CODES.DEVIATE_ROUTE; // '판단'에 대한 예시 오류
+            turnOn = true;
+            actionName = "Judgment ON";
+            break;
+        case 'judge-off':
+            statusCode = SENSOR_FAIL_CODES.DEVIATE_ROUTE;
+            turnOn = false;
+            actionName = "Judgment OFF";
+            break;
+        case 'ctrl-on':
+            statusCode = SENSOR_FAIL_CODES.CONTROL_SYSTEM_FAIL;
+            turnOn = true;
+            actionName = "Control ON";
+            break;
+        case 'ctrl-off':
+            statusCode = SENSOR_FAIL_CODES.CONTROL_SYSTEM_FAIL;
+            turnOn = false;
+            actionName = "Control OFF";
+            break;
+        case 'internet-on':
+            statusCode = SENSOR_FAIL_CODES.INTERNET_FAIL;
+            turnOn = true;
+            actionName = "Internet ON";
+            break;
+        case 'internet-off':
+            statusCode = SENSOR_FAIL_CODES.INTERNET_FAIL;
+            turnOn = false;
+            actionName = "Internet OFF";
+            break;
+        case 'v2i-on':
+            statusCode = SENSOR_FAIL_CODES.V2I_FAIL;
+            turnOn = true;
+            actionName = "V2I ON";
+            break;
+        case 'v2i-off':
+            statusCode = SENSOR_FAIL_CODES.V2I_FAIL;
+            turnOn = false;
+            actionName = "V2I OFF";
+            break;
+        default:
+            res.status(400).json({ message: "Invalid change-status parameter." });
+            return;
+    }
+
+    if (statusCode !== undefined && turnOn !== undefined) {
+        const updatedMockData = changeStatus(statusCode, turnOn);
+        broadcastMessage(JSON.stringify(updatedMockData));
+        res.status(200).json({ message: `Sensor status updated: ${actionName}` });
+    } else {
+        res.status(500).json({ message: "Internal server error: Status code or turnOn not determined." });
+    }
+});
 
 // catch 404 and forward to error handler
 app.use(function (req: Request, res: Response, next: NextFunction) {
