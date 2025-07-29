@@ -235,7 +235,7 @@ app.get("/change-status/:param", (req: Request, res: Response) => {
     }
 
     if (statusCode !== undefined && turnOn !== undefined) {
-        const updatedMockData = changeStatus(statusCode, !turnOn);
+        const updatedMockData = changeSgtatus(statusCode, turnOn);
         broadcastMessage(JSON.stringify(updatedMockData));
         res.status(200).json({ message: `Sensor status updated: ${actionName}` });
     } else {
