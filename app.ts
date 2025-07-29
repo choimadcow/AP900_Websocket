@@ -29,10 +29,6 @@ import {changeDriveMode, createMockData} from './services/mock-data';
 let timer: NodeJS.Timeout | null = null;
 let timer2: NodeJS.Timeout | null = null;
 
-app.get("/", () => {
-    console.log("AP900 Websocket Server Connected!");
-});
-
 const allowedIps = ['14.34.84.138', '::1', '127.0.0.1', '*']; // 허용할 실제 공인 IP를 여기에 추가하세요.
 
 const ipFilter = (req: Request, res: Response, next: NextFunction) => {
