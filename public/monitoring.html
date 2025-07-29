@@ -86,6 +86,17 @@
             background-color: #f9f9f9;
             text-align: center;
         }
+
+        #error-info-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -275,7 +286,7 @@
                 const displayElement = document.getElementById('error-info-display');
                 if (displayElement) {
                     if (data.errInfo !== null) {
-                        displayElement.textContent = `발생한 오류 ${data.errInfo ? "객체인식오류" : "Take Over"}`;
+                        displayElement.textContent = `발생한 오류: ${data.errInfo ? "객체인식오류" : "Take Over"}`;
                     } else {
                         displayElement.textContent = '발생한 오류: 없음';
                     }

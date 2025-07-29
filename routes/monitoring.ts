@@ -29,6 +29,7 @@ router.get('/api/passenger-count', (req: Request, res: Response) => {
 
 router.get('/error-info/:param', (req: Request, res: Response) => {
   const errType: boolean = Boolean(req.params.param);
+  console.log("error info에서 받아온 값 : ", errType);
   if (errType) {
     errInfo = errType;
     console.log(`Passenger count updated to: ${errType ? "객체인식오류" : "Take Over"}`);
