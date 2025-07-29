@@ -249,7 +249,7 @@
         // Function to fetch and display passenger count
         async function fetchPassengerCount() {
             try {
-                const response = await fetch('/api/passenger-count');
+                const response = await fetch('/monitoring/api/passenger-count');
                 const data = await response.json();
                 const displayElement = document.getElementById('passenger-count-display');
                 if (displayElement) {
