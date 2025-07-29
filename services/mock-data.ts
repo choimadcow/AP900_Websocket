@@ -731,7 +731,7 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
                     operation_mode: 0, // 1: 자율, 0: 수동
                     system_off_reason: 0, // NONE
                     auto_available: Math.random() > 0.1,
-                    sensor_status: SENSOR_FAIL_CODES.FAULT_NONE
+                    sensor_status: lastMockData ? lastMockData.dispInfo.controlInfo.sensor_status : SENSOR_FAIL_CODES.FAULT_NONE
                 },
                 laneChange: {
                     // 차선 변경 상태
