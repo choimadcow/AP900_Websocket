@@ -62,6 +62,8 @@ app.get("/auto-stop", (req: Request, res: Response) => {
     res.status(200).json({ message: "Auto-stop command sent successfully." });
 });
 
+app.use('/monitoring', monitoringRouter);
+
 app.get("/:param", (req, res) => {
     const clients = req.app.get('clients'); // Changed from io
     const param = req.params.param;
@@ -129,7 +131,6 @@ app.get("/:param", (req, res) => {
             res.status(400).send('Invalid parameter');
     }
 });
-app.use('/monitoring', monitoringRouter);
 
 app.get("/change-status/:param", (req: Request, res: Response) => {
     const param = req.params.param;
