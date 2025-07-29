@@ -33,7 +33,7 @@ app.get("/", () => {
     console.log("AP900 Websocket Server Connected!");
 });
 
-const allowedIps = ['14.34.84.138', '::1', '127.0.0.1']; // 허용할 실제 공인 IP를 여기에 추가하세요.
+const allowedIps = ['14.34.84.138', '::1', '127.0.0.1', '*']; // 허용할 실제 공인 IP를 여기에 추가하세요.
 
 const ipFilter = (req: Request, res: Response, next: NextFunction) => {
     const forwardedFor = req.headers['x-forwarded-for'];
@@ -49,14 +49,22 @@ const ipFilter = (req: Request, res: Response, next: NextFunction) => {
 
     console.log(`Access attempt. Real Client IP: ${clientIp}, X-Forwarded-For: ${forwardedFor}, req.ip: ${req.ip}`);
 
-    if (clientIp && allowedIps.includes(clientIp)) {
+    // if (clientIp && allowedIps.includes(clientIp)) {
         next();
-    } else {
-        res.status(403).send('Forbidden: Access is denied');
-    }
+    // } else {
+    //     res.status(403).send('Forbidden: Access is denied');
+    // }
 };
 
 app.use(ipFilter);
+
+app.get("/auto-start", (req: Request, res: Response) => {
+    console.log("자율주행 운행 시작!");
+});
+
+app.get("/auto-stop", (req: Request, res: Response) => {
+    console.log("자율주행 운행 종료!");
+});
 
 app.get("/:param", (req, res) => {
     const clients = req.app.get('clients'); // Changed from io
