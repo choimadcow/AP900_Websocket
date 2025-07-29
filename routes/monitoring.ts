@@ -28,15 +28,23 @@ router.get('/api/passenger-count', (req: Request, res: Response) => {
 });
 
 router.get('/error-info/:param', (req: Request, res: Response) => {
-  const errType: boolean = Boolean(req.params.param);
-  console.log("error info에서 받아온 값 : ", errType);
-  if (errType) {
-    errInfo = errType;
-    console.log(`Passenger count updated to: ${errType ? "객체인식오류" : "Take Over"}`);
-    res.status(200).send(`Passenger count updated to ${errType ? "객체인식오류" : "Take Over"}`);
+  const errorTypeString: string = req.params.param;
+  console.log("error info에서 받아온 값 : ", errorTypeString);
+  
+  let responseMessage: string;
+  if (errorTypeString === "OBJ_RECOG_ERR") {
+    errInfo = true; // 객체 인식 오류 상태
+    responseMessage = "객체인식오류";
+  } else if (errorTypeString === "TAKE_OVER") {
+    errInfo = false; // Take Over 상태
+    responseMessage = "Take Over";
   } else {
-    res.status(400).send('Invalid passenger count parameter.');
+    res.status(400).send('Invalid error type parameter.');
+    return;
   }
+  
+  console.log(`Error info updated to: ${responseMessage}`);
+  res.status(200).send(`Error info updated to ${responseMessage}`);
 });
 
 /* GET API for passenger count. */

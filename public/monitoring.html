@@ -286,7 +286,7 @@
                 const displayElement = document.getElementById('error-info-display');
                 if (displayElement) {
                     if (data.errInfo !== null) {
-                        displayElement.textContent = `발생한 오류: ${data.errInfo ? "객체인식오류" : "Take Over"}`;
+                        displayElement.textContent = `발생한 오류: ${data.errInfo === "TAKE_OVER" ? "Take Over" : "객체인식오류"}`;
                     } else {
                         displayElement.textContent = '발생한 오류: 없음';
                     }
