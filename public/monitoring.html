@@ -75,6 +75,17 @@
             font-weight: bold;
             color: #333;
         }
+
+        #passenger-count-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -159,6 +170,11 @@
                 <div class="toggle-text" onclick="fetch('/send-driver-message/normal')">NORMAL</div>
             </div>
         </div>
+
+        <hr style="margin: 1rem"/>
+
+        <div id="passenger-count-display">승객 수: N/A</div>
+
     </div>
 
     <script>
@@ -229,6 +245,35 @@
                 }
             });
         });
+
+        // Function to fetch and display passenger count
+        async function fetchPassengerCount() {
+            try {
+                const response = await fetch('/api/passenger-count');
+                const data = await response.json();
+                const displayElement = document.getElementById('passenger-count-display');
+                if (displayElement) {
+                    if (data.passengerCount !== null) {
+                        displayElement.textContent = `승객 수: ${data.passengerCount}`;
+                    } else {
+                        displayElement.textContent = '승객 수: N/A';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching passenger count:', error);
+                const displayElement = document.getElementById('passenger-count-display');
+                if (displayElement) {
+                    displayElement.textContent = '승객 수: 오류 발생';
+                }
+            }
+        }
+
+        // Fetch passenger count initially and then every 5 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPassengerCount();
+            setInterval(fetchPassengerCount, 5000); // Refresh every 5 seconds
+        });
+
     </script>
 </body>
 </html>
