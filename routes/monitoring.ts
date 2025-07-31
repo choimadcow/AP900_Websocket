@@ -44,29 +44,26 @@ router.get('/api/passenger-count', (req: Request, res: Response) => {
   res.json({ passengerCount: currentCount });
 });
 
-// router.get('/error-info/:param', (req: Request, res: Response) => {
-//   const errorTypeString: string = req.params.param;
-//   console.log("error info에서 받아온 값 : ", errorTypeString);
-//
-//   let responseMessage: string;
-//   if (errorTypeString === "OBJ_RECOG_ERR") {
-//     errInfo = errorTypeString;
-//     responseMessage = "객체인식오류";
-//   } else if (errorTypeString === "TAKE_OVER") {
-//     errInfo = errorTypeString;
-//     responseMessage = "Take Over";
-//   } else {
-//     res.status(400).send('Invalid error type parameter.');
-//     return;
-//   }
-//
-//   console.log(`Error info updated to: ${responseMessage}`);
-//   res.status(200).send(`Error info updated to ${responseMessage}`);
-// });
-//
-// /* GET API for passenger count. */
-// router.get('/api/error-info', (req: Request, res: Response) => {
-//   res.json({ errInfo: errInfo });
-// });
+router.get('/error-info/:param', (req: Request, res: Response) => {
+  const errorTypeString: string = req.params.param;
+  console.log("error info에서 받아온 값 : ", errorTypeString);
+
+  if (errorTypeString === "OBJ_RECOG_ERR") {
+    setErrorInfo("객체인식오류");
+  } else if (errorTypeString === "TAKE_OVER") {
+    setErrorInfo("TAKE OVER");
+  } else {
+    res.status(400).send('Invalid error type parameter.');
+    return;
+  }
+
+  console.log(`Error info updated to: ${getErrorInfo()}`);
+  res.status(200).send(`Error info updated to ${getErrorInfo()}`);
+});
+
+/* GET API for passenger count. */
+router.get('/api/error-info', (req: Request, res: Response) => {
+  res.json({ errInfo: getErrorInfo() });
+});
 
 export default router;

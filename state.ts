@@ -2,7 +2,7 @@
 
 // 이 파일에서 상태를 중앙 관리합니다.
 let passengerCount: number | null = null;
-let errInfo: string | null = null;
+let errInfo: string = "";
 
 // 승객 수를 변경하는 함수
 export const setPassengerCount = (count: number): void => {
@@ -20,6 +20,6 @@ export const setErrorInfo = (info: string): void => {
 };
 
 // 현재 에러 정보를 가져오는 함수
-export const getErrorInfo = (): string | null => {
+export const getErrorInfo = (): string => {
     return errInfo;
 };

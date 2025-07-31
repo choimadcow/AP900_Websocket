@@ -9,7 +9,7 @@ import debug from 'debug';
 import http from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import monitoringRouter from "../routes/monitoring";
-import { setPassengerCount } from "../state";
+import {setErrorInfo, setPassengerCount} from "../state";
 
 const log = debug('ap900-websocket:server');
 /**
@@ -49,6 +49,15 @@ wss.on('connection', (ws: WebSocket) => {
             setPassengerCount(count);
             console.log(`Passenger count updated to: ${count}`);
             // 필요시 클라이언트에게 성공 응답을 다시 보낼 수 있습니다.
+          }
+        } else if(content.type === 'BusOperation') {
+
+        } else if(content.type === 'TakeOverReason') {
+          const errMsg: string = String(content.value);
+
+          if(errMsg != null) {
+            setErrorInfo(errMsg);
+            console.log(`${errMsg} 메세지를 받았슴다`);
           }
         }
       }
