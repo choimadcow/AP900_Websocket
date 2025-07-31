@@ -9,16 +9,17 @@ import debug from 'debug';
 import http from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import express, {Request, Response} from "express";
+import monitoringRouter from "../routes/monitoring";
 
 const log = debug('ap900-websocket:server');
 const router = express.Router();
-
 /**
  * Get port from environment and store in Express.
  */
 
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
+app.use('/monitoring', monitoringRouter);
 
 /**
  * Create HTTP server.
@@ -30,7 +31,7 @@ const clients = new Set<WebSocket>(); // To store connected WebSocket clients
 
 let passengerCount: number = 0;
 
-router.get('/api/passenger-count', (req: Request, res: Response) => {
+monitoringRouter.get('/api/passenger-count', (req: Request, res: Response) => {
   res.json({ passengerCount: passengerCount });
 });
 
