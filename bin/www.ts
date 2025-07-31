@@ -10,6 +10,7 @@ import http from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import express, {Request, Response} from "express";
 import monitoringRouter from "../routes/monitoring";
+import { setPassengerCount } from "../state";
 
 const log = debug('ap900-websocket:server');
 const router = express.Router();
@@ -53,8 +54,8 @@ wss.on('connection', (ws: WebSocket) => {
           const count = parseInt(String(content.value), 10);
 
           if (!isNaN(count)) {
-            passengerCount = count;
-            console.log(`Passenger count updated to: ${passengerCount}`);
+            setPassengerCount(count);
+            console.log(`Passenger count updated to: ${count}`);
             // 필요시 클라이언트에게 성공 응답을 다시 보낼 수 있습니다.
           }
         }
