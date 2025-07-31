@@ -303,11 +303,11 @@
         // Fetch passenger count initially and then every 5 seconds
         document.addEventListener('DOMContentLoaded', () => {
             fetchPassengerCount();
-            fetchErrorType();
+            // fetchErrorType();
 
             setInterval(() => {
                 fetchPassengerCount();
-                fetchErrorType();
+                // fetchErrorType();
             }, 5000); // Refresh every 5 seconds
         });
 

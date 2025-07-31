@@ -24,6 +24,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/monitoring', monitoringRouter);
 
 import {changeDriveMode, createMockData, changeStatus, SENSOR_FAIL_CODES, createDriverMessageEvent} from './services/mock-data';
 
@@ -61,8 +62,6 @@ app.get("/auto-stop", (req: Request, res: Response) => {
     broadcastMessage(JSON.stringify(updatedMockData));
     res.status(200).json({ message: "Auto-stop command sent successfully." });
 });
-
-app.use('/monitoring', monitoringRouter);
 
 app.get("/:param", (req, res) => {
     const clients = req.app.get('clients'); // Changed from io
@@ -277,11 +276,6 @@ app.get("/send-driver-message/:icon", (req: Request, res: Response) => {
     res.status(200).json({ message: `DriverMessage with icon '${icon}' sent successfully.` });
 });
 
-// catch 404 and forward to error handler
-app.use(function (req: Request, res: Response, next: NextFunction) {
-    next(createError(404));
-});
-
 // error handler
 app.use(function (err: any, req: Request, res: Response) {
     // set locals, only providing error in development
@@ -291,6 +285,11 @@ app.use(function (err: any, req: Request, res: Response) {
     // render the error page
     res.status(err.status || 500);
     res.render('error');
+});
+
+// catch 404 and forward to error handler
+app.use(function (req: Request, res: Response, next: NextFunction) {
+    next(createError(404));
 });
 
 export default app;

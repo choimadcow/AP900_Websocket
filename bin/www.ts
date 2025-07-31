@@ -8,12 +8,10 @@ import app from '../app';
 import debug from 'debug';
 import http from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
-import express, {Request, Response} from "express";
 import monitoringRouter from "../routes/monitoring";
 import { setPassengerCount } from "../state";
 
 const log = debug('ap900-websocket:server');
-const router = express.Router();
 /**
  * Get port from environment and store in Express.
  */
@@ -29,12 +27,6 @@ app.use('/monitoring', monitoringRouter);
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 const clients = new Set<WebSocket>(); // To store connected WebSocket clients
-
-let passengerCount: number = 0;
-
-monitoringRouter.get('/api/passenger-count', (req: Request, res: Response) => {
-  res.json({ passengerCount: passengerCount });
-});
 
 wss.on('connection', (ws: WebSocket) => {
   clients.add(ws);
