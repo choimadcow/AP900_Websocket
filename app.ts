@@ -47,6 +47,22 @@ app.get("/auto-start", (req: Request, res: Response) => {
     res.status(200).json({ message: "Auto-start command sent successfully." });
 });
 
+app.get("/system-shutdown", (req: Request, res: Response) => {
+    console.log("시스템 종료");
+    const clients = req.app.get('clients');
+
+    const broadcastMessage = (message: string) => {
+        clients.forEach((client: any) => { // client type is WebSocket from 'ws'
+            if (client.readyState === client.OPEN) {
+                client.send(message);
+            }
+        });
+    };
+
+    broadcastMessage("system_shutdown");
+    res.status(200).json({ message: "system shutdown command sent successfully." });
+})
+
 app.get("/auto-stop", (req: Request, res: Response) => {
     console.log("자율주행 운행 종료!");
     const clients = req.app.get('clients');
