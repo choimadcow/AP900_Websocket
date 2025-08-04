@@ -47,7 +47,7 @@ app.get("/auto-start", (req: Request, res: Response) => {
     res.status(200).json({ message: "Auto-start command sent successfully." });
 });
 
-app.get("/system-shutdown", (req: Request, res: Response) => {
+app.post("/system-shutdown", (req: Request, res: Response) => {
     console.log("시스템 종료");
     const clients = req.app.get('clients');
 
