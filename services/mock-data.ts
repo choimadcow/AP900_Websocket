@@ -616,8 +616,11 @@ const tempDatas = [
 interface MockData {
     dispInfo: {
         gpsInfo: {
-            latitude: number;
-            longitude: number;
+            xM: number,
+            yM: number,
+            heading: number
+            // latitude: number;
+            // longitude: number;
         };
         egoInfo: {
             egoVehicleSpeedMps: number;
@@ -627,6 +630,9 @@ interface MockData {
             turnSignal: number;
             steeringAngleDeg: number;
         };
+        objectInfos: {}[];
+        roadInfo: {};
+        localPath: {};
         extraInfos: string[];
         controlInfo: {
             operation_mode: number;
@@ -705,8 +711,12 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
             dispInfo: {
                 gpsInfo: {
                     // 위치 정보 (테스트용 TM 좌표 혹은 위경도 좌표)
-                    latitude: +(36.35 + Math.random() * 0.01).toFixed(7),
-                    longitude: +(127.38 + Math.random() * 0.01).toFixed(7)
+                    xM: +(127.38 + Math.random() * 0.01).toFixed(7),
+                    yM: +(36.35 + Math.random() * 0.01).toFixed(7),  // latitude를 yM으로
+                    heading: +(Math.random() * 360).toFixed(2)      // heading 추가
+                    // latitude: +(36.35 + Math.random() * 0.01).toFixed(7),
+                    // longitude: +(127.38 + Math.random() * 0.01).toFixed(7)
+
                 },
                 egoInfo: {
                     // 차량 속도 (m/s), 배터리 잔량, 기어 상태 (ASCII), 브레이크 여부, 방향지시등, 핸들 각도
@@ -724,6 +734,25 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
                         nextStop: nextStop.idxName
                     })
                 ],
+                objectInfos: [
+                    ...Array.from({length: Math.floor(Math.random() * 3) + 1}, () => ({
+                        objectID: Math.floor(Math.random() * 1000),
+                        objectType: ["Vehicle", "Pedestrian", "Bike"][Math.floor(Math.random() * 3)],
+                        box_point_0: {x: +(Math.random() * 10 - 5).toFixed(2), y: +(Math.random() * 20).toFixed(2)},
+                        box_point_1: {x: +(Math.random() * 10 - 5).toFixed(2), y: +(Math.random() * 20).toFixed(2)},
+                        box_point_2: {x: +(Math.random() * 10 - 5).toFixed(2), y: +(Math.random() * 20).toFixed(2)},
+                        box_point_3: {x: +(Math.random() * 10 - 5).toFixed(2), y: +(Math.random() * 20).toFixed(2)},
+                    }))
+                ],
+                roadInfo: {
+                    trafficType: [1, 2, 4, 8, 16][Math.floor(Math.random() * 5)] // 예시 신호등 값
+                },
+                localPath: {
+                    path: Array.from({length: 10}, (_, i) => ({ // 예시: 10개 좌표로 구성된 경로
+                        x: +(i * 2).toFixed(2),
+                        y: +(Math.sin(i) * 2).toFixed(2)
+                    }))
+                },
                 controlInfo: {
                     // 자율/수동 상태, 오류 여부, 자율 가능 여부
                     operation_mode: lastMockData ? lastMockData.dispInfo.controlInfo.operation_mode : 0, // 1: 자율, 0: 수동
@@ -843,7 +872,7 @@ export const createDriverMessageEvent = (icon: string, message: string): MockDat
             messageTime: Date.now() // 메시지 시간 갱신
         }
     };
-    
+
     lastMockData = newMockData; // lastMockData 업데이트
     return newMockData;
 }
