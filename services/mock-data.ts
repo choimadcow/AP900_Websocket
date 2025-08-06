@@ -618,6 +618,7 @@ interface MockData {
         gpsInfo: {
             xM: number,
             yM: number,
+            zM: number,
             heading: number
             // latitude: number;
             // longitude: number;
@@ -630,7 +631,14 @@ interface MockData {
             turnSignal: number;
             steeringAngleDeg: number;
         };
-        objectInfos: {}[];
+        objectInfos: {
+            objectID: number;
+            objectType: number; // 0: Vehicle, 1: Pedestrian, 2: Bike
+            box_point_0: { x: number, y: number };
+            box_point_1: { x: number, y: number };
+            box_point_2: { x: number, y: number };
+            box_point_3: { x: number, y: number };
+        }[];
         roadInfo: {};
         localPath: {};
         extraInfos: string[];
@@ -713,6 +721,7 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
                     // 위치 정보 (테스트용 TM 좌표 혹은 위경도 좌표)
                     xM: +(127.38 + Math.random() * 0.01).toFixed(7),
                     yM: +(36.35 + Math.random() * 0.01).toFixed(7),  // latitude를 yM으로
+                    zM: +(Math.random() * 50).toFixed(2),
                     heading: +(Math.random() * 360).toFixed(2)      // heading 추가
                     // latitude: +(36.35 + Math.random() * 0.01).toFixed(7),
                     // longitude: +(127.38 + Math.random() * 0.01).toFixed(7)
@@ -737,7 +746,7 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
                 objectInfos: [
                     ...Array.from({length: Math.floor(Math.random() * 3) + 1}, () => ({
                         objectID: Math.floor(Math.random() * 1000),
-                        objectType: ["Vehicle", "Pedestrian", "Bike"][Math.floor(Math.random() * 3)],
+                        objectType: Math.floor(Math.random() * 3),
                         box_point_0: {x: +(Math.random() * 10 - 5).toFixed(2), y: +(Math.random() * 20).toFixed(2)},
                         box_point_1: {x: +(Math.random() * 10 - 5).toFixed(2), y: +(Math.random() * 20).toFixed(2)},
                         box_point_2: {x: +(Math.random() * 10 - 5).toFixed(2), y: +(Math.random() * 20).toFixed(2)},
