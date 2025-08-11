@@ -729,7 +729,7 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
                 },
                 egoInfo: {
                     // 차량 속도 (m/s), 배터리 잔량, 기어 상태 (ASCII), 브레이크 여부, 방향지시등, 핸들 각도
-                    egoVehicleSpeedMps: +(Math.random() * 25).toFixed(2),
+                    egoVehicleSpeedMps: +(Math.random() * 100).toFixed(2),
                     energyLevel: +(Math.random()).toFixed(2),
                     gear: ["P", "R", "N", "D"][Math.floor(Math.random() * 4)].charCodeAt(0),
                     brake: Math.round(Math.random()),
@@ -808,7 +808,7 @@ export const createMockData = (isContinuous?: boolean, forceStationChanged?: boo
     } else if (lastMockData) {
         // 연속 송신 시 ego 상태만 업데이트
         lastMockData.dispInfo.egoInfo = {
-            egoVehicleSpeedMps: +(Math.random() * 25).toFixed(2),
+            egoVehicleSpeedMps: +(Math.random() * 100).toFixed(2),
             energyLevel: +(Math.random()).toFixed(2),
             gear: ["P", "R", "N", "D"][Math.floor(Math.random() * 4)].charCodeAt(0),
             brake: Math.round(Math.random()),

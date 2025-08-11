@@ -1,0 +1,194 @@
+syntax = "proto3";
+package HMI_T.ETRI.protobuf;
+
+message HMIInfoPb{
+    optional HMIDisplayInfoPb dispInfo = 1;
+    optional HMIEventPb event = 2;
+}
+
+enum EventType{
+    Toast = 0;
+    GlobalPath = 1;
+    DriverMessage = 2;
+    // GeneralUserInput = 128; 추후 이용을 위해 예약
+    OperatorInput = 129;
+}
+
+message HMIEventPb {
+    EventType eventType = 1;
+    string Content = 2;
+}
+/*
+############################# 자율주행 HMI #############################
+# Toast 이벤트를 Json 으로 포장
+HMIEventPb의 Content 내용 예:
+{
+    "icon": "info",
+    "position": "top",
+    "duration": "10",
+    "content": "자율주행이 시작되었습니다."
+}
+
+# GlobalPath 이벤트를 Json으로 포장
+HMIEventPb의 Content 내용 예:
+[
+    528000101,
+    528000102,
+    528000103,
+    528000104,
+    528000105
+]
+
+
+############################# 버스 HMI #############################
+# DriverMessage 이벤트를 Json으로 포장
+{
+    "icon" : "yellow",
+    "content" : 
+"
+<span style='color:yellow;'>교통약자보호구역</span><br>
+<span style='font-weight: bold;'>운전대를 잡아주시길 바랍니다</span>
+"
+}
+
+# OperatorInput 이벤트를 Json 으로 포장
+Json 의 내용은 type 과 value로 정의하고 각 종류별 내용은 다음과 같다
+
+1. BusOperation
+- value : 상황에 따른 UTF-8 문자열
+  1. 자율주행 버튼 = "AUTO_BUTTON_PRESSED"
+  2. 테스트 버튼 = "TEST_BUTTON_PRESSED"
+  3. 충전 시작 = "BEGIN_CHARGING"
+  4. 충전 종료 = "END_CHARGING"
+  5. 버스운행 시작 = "BEGIN_OPERATION"
+  6. 버스운행 종료 = "END_OPERATION"
+2. PassengerCountUpdate
+- value : 숫자
+3. TakeOverReason
+- value : Take Over 원인 UTF-8 문자열
+
+## OperatorInput 이벤트 Content 내용 예1:
+{
+    "type" : "PassengerCountUpdate"
+    "value" : 12
+}
+
+## OperatorInput 이벤트 Content 내용 예2:
+{
+    "type" : "TakeOverReason"
+    "value" : "객체인식오류"
+}
+*/
+
+message HMIDisplayInfoPb {
+    HMIGpsInfoPb gpsInfo = 1; // TM 좌표
+    HMIEgoVehiclePb egoInfo = 2;
+    repeated HMIObjectPb objectInfos = 3;
+    repeated string extraInfos = 4;
+    // 새로운 필드는 기존 필드 뒤에 추가
+    string vehicleID = 5;
+    int64 messageTime = 6;
+    HMIControlInfoPb controlInfo = 7;
+    HMIRoadInfoPb roadInfo = 8;
+    HMILocalPathPb localPath = 9;
+    optional HMILaneChangePb laneChange = 10;
+    HMITurnByTurnPb TurnByTurnInfo = 11;
+    HMITargetInfoPb targetInfo = 12;
+}
+
+message HMITargetInfoPb{
+    bool targetAvailable = 1;
+    // repeated HMIObjectPb targetInfos = 2; //추후 이용을 위해 예약
+}
+
+message HMIGpsInfoPb {
+    double xM = 1;
+    double yM = 2;
+    double zM = 3;
+    double heading = 4; // Deg 정북방향
+}
+
+message HMIEgoVehiclePb {
+    double egoVehicleSpeedMps = 1;
+    double steeringAngleDeg = 4;
+    int32 turnSignal = 7; // 추후 정의 예정 
+    // 새로운 필드 추가
+    int32 brake = 8;
+    int32 gear = 9; // ASCII로 전달 예정
+    float energyLevel = 10; // 배터리 잔량 혹은 연료 잔량 0.0 ~ 1.0
+}
+
+message HMIControlInfoPb {
+    int32 operation_mode = 1; //  AUTO : 1, MANUAL :0
+    int32 system_off_reason = 2; // NONE=0, E_STOP_BTN=1, ACCEL_OVERRIDE=2, BRAKE_OVERRIDE=3, HANDLE_OVERRIDE=4, CANCEL=5, SYSTEM_FAIL=6, AEB_ON=7
+    optional bool auto_available = 3;
+    optional int32 sensor_status = 4;
+/*
+    FAULT_NONE = 0,
+    CONTROL_SYSTEM_FAIL = 0x00000001, //  제어
+    VISION_SYSTEM_FAIL = 0x00000002, //  인식
+    VISION_CAMERA_FAIL = 0x00000004, // 카메라
+    VISION_GPS_FAIL = 0x00000008, //  GPS
+    VISION_CAN_FAIL = 0x00000010, //  제어
+    VISION_NTRIP_FAIL = 0x00000020, // GPS
+    VISION_LIDAR_FAIL = 0x00000040, // LIDAR
+    VISION_TLR_FAIL = 0x00000080, // 인식
+    VISION_DETECTOR_FAIL = 0x00000100, // 인식
+    VISION_LOC_INIT_FAIL = 0x00000200, // 인식
+    DEVIATE_ROUTE = 0x00000400, // 판단
+    GPP_FAIL = 0x00000800, // 판단
+    SCHOOL_ZONE_OVERRIDE = 0x00001000, // 13
+*/
+}
+
+enum ObjectType {
+    Vehicle = 0;
+    Pedestrian = 1;
+    Bike = 2;
+}
+
+message PoseXY {
+    double x = 1;
+    double y = 2;
+}
+
+message HMIObjectPb {
+    int32 objectID = 1;
+    ObjectType objectType = 2; // 0: Vehicle, 1: Pedestrian, 2: Bike
+    PoseXY box_point_0 = 3; // polygon CW [M]  ISO 8855 기준 상대좌표 제공
+    PoseXY box_point_1 = 4;
+    PoseXY box_point_2 = 5;
+    PoseXY box_point_3 = 6;
+}
+
+message HMIRoadInfoPb{
+	int32 trafficType = 1; // 신호등 인식 결과, 0x00 : unknown, 0x01 : 청색, 0x02 : 적색, 0x04 : 좌회전, 0x08 : 점멸, 0x10 : 노란색 (중복표기 가능)
+}
+
+message HMILocalPathPb{
+    repeated PoseXY path = 1;
+}
+
+enum LaneDirection{
+    NOT_CHANGING = 0;
+    LEFT = 1;
+    RIGHT = 2;
+}
+
+enum LaneProcess{
+    READY = 0;
+    BLOCKED = 1;
+    CHANGING = 2;
+}
+
+message HMILaneChangePb
+{
+    LaneDirection direction = 1;
+    LaneProcess process = 2;
+}
+
+message HMITurnByTurnPb
+{
+    string maneuver = 1;// meanuver "LEFT", "RIGHT", "STRAIGHT"
+    double distance = 2;// meter
+} 
