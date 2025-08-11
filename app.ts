@@ -26,7 +26,14 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/monitoring', monitoringRouter);
 
-import {changeDriveMode, createMockData, changeStatus, SENSOR_FAIL_CODES, createDriverMessageEvent} from './services/mock-data';
+import {
+    changeDriveMode,
+    createMockData,
+    changeStatus,
+    SENSOR_FAIL_CODES,
+    createDriverMessageEvent,
+    changeSpeed
+} from './services/mock-data';
 
 let timer: NodeJS.Timeout | null = null;
 let timer2: NodeJS.Timeout | null = null;
