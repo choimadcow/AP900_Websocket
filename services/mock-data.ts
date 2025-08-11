@@ -885,3 +885,14 @@ export const createDriverMessageEvent = (icon: string, message: string): MockDat
     lastMockData = newMockData; // lastMockData 업데이트
     return newMockData;
 }
+
+export const changeSpeed = (newSpeed: number): MockData => {
+    if (!lastMockData) {
+        createMockData(false);
+    }
+
+    lastMockData!.dispInfo.egoInfo.egoVehicleSpeedMps = newSpeed;
+    lastMockData!.dispInfo.messageTime = Date.now();
+
+    return lastMockData!;
+};

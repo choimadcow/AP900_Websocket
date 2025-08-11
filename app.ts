@@ -292,6 +292,25 @@ app.get("/send-driver-message/:icon", (req: Request, res: Response) => {
     res.status(200).json({ message: `DriverMessage with icon '${icon}' sent successfully.` });
 });
 
+app.get("/set-speed/:speed", (req: Request, res: Response) => {
+    const speed = parseInt(req.params.speed, 10);
+    if (!isNaN(speed)) {
+        const clients = req.app.get('clients');
+        const updatedMockData = changeSpeed(speed);
+        const broadcastMessage = (message: string) => {
+            clients.forEach((client: any) => {
+                if (client.readyState === client.OPEN) {
+                    client.send(message);
+                }
+            });
+        };
+        broadcastMessage(JSON.stringify(updatedMockData));
+        res.status(200).json({ message: `Speed updated to ${speed}` });
+    } else {
+        res.status(400).send('Invalid speed parameter.');
+    }
+});
+
 // error handler
 app.use(function (err: any, req: Request, res: Response) {
     // set locals, only providing error in development
