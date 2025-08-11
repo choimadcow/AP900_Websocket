@@ -32,7 +32,7 @@ import {
     changeStatus,
     SENSOR_FAIL_CODES,
     createDriverMessageEvent,
-    changeSpeed
+    changeSpeed, changeLaneChange
 } from './services/mock-data';
 
 let timer: NodeJS.Timeout | null = null;
