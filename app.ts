@@ -318,6 +318,25 @@ app.get("/set-speed/:speed", (req: Request, res: Response) => {
     }
 });
 
+app.post("/set-lane-change", (req: Request, res: Response) => {
+    const { direction, process } = req.body;
+    if (direction !== undefined && process !== undefined) {
+        const clients = req.app.get('clients');
+        const updatedMockData = changeLaneChange(direction, process);
+        const broadcastMessage = (message: string) => {
+            clients.forEach((client: any) => {
+                if (client.readyState === client.OPEN) {
+                    client.send(message);
+                }
+            });
+        };
+        broadcastMessage(JSON.stringify(updatedMockData));
+        res.status(200).json({ message: `Lane change updated to direction: ${direction}, process: ${process}` });
+    } else {
+        res.status(400).send('Invalid lane change parameters.');
+    }
+});
+
 // error handler
 app.use(function (err: any, req: Request, res: Response) {
     // set locals, only providing error in development

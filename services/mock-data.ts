@@ -896,3 +896,15 @@ export const changeSpeed = (newSpeed: number): MockData => {
 
     return lastMockData!;
 };
+
+export const changeLaneChange = (direction: number, process: number): MockData => {
+    if (!lastMockData) {
+        createMockData(false);
+    }
+
+    lastMockData!.dispInfo.laneChange.direction = direction;
+    lastMockData!.dispInfo.laneChange.process = process;
+    lastMockData!.dispInfo.messageTime = Date.now();
+
+    return lastMockData!;
+};

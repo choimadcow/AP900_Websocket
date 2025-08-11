@@ -74,6 +74,31 @@
             <div class="toggle-text">100+ km/h</div>
         </div>
     </div>
+    <hr style="margin: 1rem"/>
+    <h3>Lane Change</h3>
+    <div class="grid-container" style="grid-template-columns: repeat(2, 1fr);">
+        <div>
+            <h4>Direction</h4>
+            <input type="radio" id="dir_none" name="direction" value="0" checked>
+            <label for="dir_none">None</label><br>
+            <input type="radio" id="dir_left" name="direction" value="1">
+            <label for="dir_left">Left</label><br>
+            <input type="radio" id="dir_right" name="direction" value="2">
+            <label for="dir_right">Right</label>
+        </div>
+        <div>
+            <h4>Process</h4>
+            <input type="radio" id="proc_ready" name="process" value="0" checked>
+            <label for="proc_ready">READY</label><br>
+            <input type="radio" id="proc_blocked" name="process" value="1">
+            <label for="proc_blocked">BLOCKED</label><br>
+            <input type="radio" id="proc_changing" name="process" value="2">
+            <label for="proc_changing">CHANGING</label>
+        </div>
+    </div>
+    <div class="toggle-wrapper" onclick="setLaneChange()" style="margin-top: 20px; justify-content: center;">
+        <div class="toggle-text">Send Lane Change</div>
+    </div>
 </div>
 
 <script>
@@ -88,6 +113,27 @@
         } catch (error) {
             console.error(`Error setting speed:`, error);
             alert(`Failed to set speed. ${error.message}`);
+        }
+    }
+
+    async function setLaneChange() {
+        const direction = document.querySelector('input[name="direction"]:checked').value;
+        const process = document.querySelector('input[name="process"]:checked').value;
+        try {
+            const response = await fetch('/set-lane-change', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ direction: parseInt(direction), process: parseInt(process) })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            console.log(`Set lane change to direction: ${direction}, process: ${process}`);
+        } catch (error) {
+            console.error(`Error setting lane change:`, error);
+            alert(`Failed to set lane change. ${error.message}`);
         }
     }
 </script>
