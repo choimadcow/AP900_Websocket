@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Screen 2</title>
+    <style>
+        body { font-family: sans-serif; }
+        .tabs {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+        .tabs a {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            text-decoration: none;
+            color: black;
+        }
+        .tabs a:hover {
+            background-color: #ddd;
+        }
+        .tabs a.active {
+            background-color: #ccc;
+        }
+        .tabcontent {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="tabs">
+    <a href="/monitoring" class="tablinks">Screen 1</a>
+    <a href="/monitoring/screen2" class="tablinks active">Screen 2</a>
+</div>
+
+<div id="screen2" class="tabcontent">
+    <h3>Screen 2</h3>
+    <p>This is the content of screen 2.</p>
+</div>
+
+</body>
+</html>

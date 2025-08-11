@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <style>
+        body { font-family: sans-serif; }
+        .tabs {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+        .tabs a {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            text-decoration: none;
+            color: black;
+        }
+        .tabs a:hover {
+            background-color: #ddd;
+        }
+        .tabs a.active {
+            background-color: #ccc;
+        }
+        .container { padding: 20px; }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px; /* 媛寃 由 */
+            margin-top: 20px;
+        }
+
+        /* 湲 ㅼ移 ㅽ */
+        .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 8px; /* 紐⑥由 κ寃 */
+            padding: 15px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        .toggle-wrapper.active {
+            background-color: #e6ffe6; /* 깊  고 뱀 諛곌꼍 */
+            border-color: #4CAF50;
+        }
+
+        .toggle-input {
+            display: none; /* 湲곕낯 泥댄щ ④린湲 */
+        }
+
+        .toggle-label {
+            position: relative;
+            display: inline-block;
+            width: 60px; /* 湲 鍮 */
+            height: 34px; /* 湲  */
+            background-color: #ccc;
+            border-radius: 34px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            flex-shrink: 0; /* ㅽ멸 湲몄댁몃 湲 ш린 吏 */
+        }
+
+        .toggle-label:before {
+            content: '';
+            position: absolute;
+            width: 26px; /*  ㅼ移 鍮 */
+            height: 26px; /*  ㅼ移  */
+            border-radius: 50%;
+            background-color: white;
+            top: 4px;
+            left: 4px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .toggle-input:checked + .toggle-label {
+            background-color: #4CAF50; /* 깊  뱀 */
+        }
+
+        .toggle-input:checked + .toggle-label:before {
+            transform: translateX(26px); /* 깊  ㅻⅨ履쎌쇰 대 */
+        }
+
+        .toggle-text {
+            margin-left: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #passenger-count-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+
+        #error-info-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="tabs">
+        <a href="/monitoring" class="tablinks active">Screen 1</a>
+        <a href="/monitoring/screen2" class="tablinks">Screen 2</a>
+    </div>
+    <div class="container">
+        <div class="grid-container">
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-auto-start" class="toggle-input" data-endpoint="/change-status/radar-on" data-off-endpoint="/change-status/radar-off">
+                <label for="toggle-auto-start" class="toggle-label"></label>
+                <span class="toggle-text">Radar</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-send" class="toggle-input" data-endpoint="/change-status/camera-on" data-off-endpoint="/change-status/camera-off">
+                <label for="toggle-send" class="toggle-label"></label>
+                <span class="toggle-text">Camera</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-continuous" class="toggle-input" data-endpoint="/change-status/gps-on" data-off-endpoint="/change-status/gps-off">
+                <label for="toggle-continuous" class="toggle-label"></label>
+                <span class="toggle-text">GPS</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-new-hello" class="toggle-input" data-endpoint="/change-status/recog-on" data-off-endpoint="/change-status/recog-off">
+                <label for="toggle-new-hello" class="toggle-label"></label>
+                <span class="toggle-text">인식</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-new-data" class="toggle-input" data-endpoint="/change-status/judge-on" data-off-endpoint="/change-status/judge-off">
+                <label for="toggle-new-data" class="toggle-label"></label>
+                <span class="toggle-text">판단</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-placeholder6" class="toggle-input" data-endpoint="/change-status/ctrl-on" data-off-endpoint="/change-status/ctrl-off">
+                <label for="toggle-placeholder6" class="toggle-label"></label>
+                <span class="toggle-text">제어</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-placeholder7" class="toggle-input" data-endpoint="/change-status/internet-on" data-off-endpoint="/change-status/internet-off">
+                <label for="toggle-placeholder7" class="toggle-label"></label>
+                <span class="toggle-text">인터넷</span>
+            </div>
+
+            <div class="toggle-wrapper">
+                <input type="checkbox" id="toggle-placeholder8" class="toggle-input" data-endpoint="/change-status/v2i-on" data-off-endpoint="/change-status/v2i-off">
+                <label for="toggle-placeholder8" class="toggle-label"></label>
+                <span class="toggle-text">V2I</span>
+            </div>
+        </div>
+
+        <hr style="margin: 1rem"/>
+
+        <div class="grid-container">
+            <div class="toggle-wrapper">
+                <div class="toggle-text" onclick="fetch('/send')">1회 전송</div>
+            </div>
+            <div class="toggle-wrapper">
+                <div class="toggle-text" onclick="fetch('/start')">연속 전송</div>
+            </div>
+            <div class="toggle-wrapper">
+                <div class="toggle-text" onclick="fetch('/stop')">정지</div>
+            </div>
+        </div>
+
+        <hr style="margin: 1rem"/>
+
+        <div class="grid-container">
+            <div class="toggle-wrapper">
+                <div style="color: red;" class="toggle-text" onclick="fetch('/send-driver-message/red')">주행경로이탈</div>
+            </div>
+            <div class="toggle-wrapper">
+                <div style="color: yellow" class="toggle-text" onclick="fetch('/send-driver-message/yellow')">교통약자보호구역</div>
+            </div>
+            <div class="toggle-wrapper">
+                <div style="color: green" class="toggle-text" onclick="fetch('/send-driver-message/green')">자율운전상태</div>
+            </div>
+            <div class="toggle-wrapper">
+                <div class="toggle-text" onclick="fetch('/send-driver-message/normal')">수동운전상태</div>
+            </div>
+        </div>
+
+        <hr style="margin: 1rem"/>
+
+        <div id="passenger-count-display">승객 수: N/A</div>
+        <div id="error-info-display">발생한 오류: N/A</div>
+    </div>
+
+    <script>
+        async function sendCommand(endpoint, toggleElement) {
+            try {
+                const response = await fetch(endpoint);
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || `HTTP error! status: ${response.status}`);
+                }
+
+                console.log(`Command to '${endpoint}' sent successfully:`, result);
+                // alert(`Success: ${result.message}`); // 너무 자주 뜨면 불편하므로 주석 처리
+
+                // 토글 wrapper에 active 클래스 추가/제거
+                if (toggleElement) {
+                    const wrapper = toggleElement.closest('.toggle-wrapper');
+                    if (wrapper) {
+                        if (toggleElement.checked) {
+                            wrapper.classList.add('active');
+                        } else {
+                            wrapper.classList.remove('active');
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error(`Error sending command to '${endpoint}':`, error);
+                alert(`Failed to send command. ${error.message}`);
+                // 오류 발생 시 토글 상태 되돌리기
+                if (toggleElement) {
+                    toggleElement.checked = !toggleElement.checked;
+                    const wrapper = toggleElement.closest('.toggle-wrapper');
+                    if (wrapper) {
+                        wrapper.classList.remove('active');
+                    }
+                }
+            }
+        }
+
+        document.querySelectorAll('.toggle-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const onEndpoint = this.getAttribute('data-endpoint');
+                const offEndpoint = this.getAttribute('data-off-endpoint');
+
+                let targetEndpoint = '';
+
+                if (this.checked) {
+                    targetEndpoint = onEndpoint;
+                } else {
+                    // 'off' 상태일 때 off-endpoint가 있으면 사용, 없으면 아무것도 안 함
+                    if (offEndpoint) {
+                        targetEndpoint = offEndpoint;
+                    } else {
+                        // 일회성 이벤트 토글이 꺼질 때는 아무것도 하지 않음
+                        console.log(`Toggle for ${onEndpoint} turned OFF. No action.`);
+                        const wrapper = this.closest('.toggle-wrapper');
+                        if (wrapper) {
+                            wrapper.classList.remove('active');
+                        }
+                        return;
+                    }
+                }
+
+                if (targetEndpoint) {
+                    sendCommand(targetEndpoint, this);
+                }
+            });
+        });
+
+        // Function to fetch and display passenger count
+        async function fetchPassengerCount() {
+            try {
+                const response = await fetch('/monitoring/api/passenger-count');
+                const data = await response.json();
+                const displayElement = document.getElementById('passenger-count-display');
+                if (displayElement) {
+                    if (data.passengerCount !== null) {
+                        displayElement.textContent = `승객 수: ${data.passengerCount}`;
+                    } else {
+                        displayElement.textContent = '승객 수: N/A';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching passenger count:', error);
+                const displayElement = document.getElementById('passenger-count-display');
+                if (displayElement) {
+                    displayElement.textContent = '승객 수: 오류 발생';
+                }
+            }
+        }
+
+        async function fetchErrorType() {
+            try {
+                const response = await fetch('/monitoring/api/error-info');
+                const data = await response.json();
+                const displayElement = document.getElementById('error-info-display');
+                if (displayElement) {
+                    if (data.errInfo !== null) {
+                        displayElement.textContent = `발생한 오류: ${data.errInfo === "TAKE_OVER" ? "Take Over" : "객체인식오류"}`;
+                    } else {
+                        displayElement.textContent = '발생한 오류: 없음';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching error info:', error);
+                const displayElement = document.getElementById('error-info-display');
+                if (displayElement) {
+                    displayElement.textContent = '발생한 오류는 없는데 오류 발생';
+                }
+            }
+        }
+
+        // Fetch passenger count initially and then every 5 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPassengerCount();
+            fetchErrorType();
+
+            setInterval(() => {
+                fetchPassengerCount();
+                fetchErrorType();
+            }, 5000); // Refresh every 5 seconds
+        });
+
+    </script>
+</body>
+</html>

@@ -9,7 +9,12 @@ const router = express.Router();
 
 /* GET monitoring page. */
 router.get('/', function(req: Request, res: Response) {
-  res.sendFile(path.join(__dirname, '..', 'public', 'monitoring.html'));
+  res.sendFile(path.join(__dirname, '..', 'public', 'monitoring1.html'));
+});
+
+/* GET screen 2. */
+router.get('/screen2', function(req: Request, res: Response) {
+    res.sendFile(path.join(__dirname, '..', 'public', 'monitoring2.html'));
 });
 
 /* GET passenger count from param and store it. */
