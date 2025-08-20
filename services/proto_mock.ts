@@ -46,26 +46,31 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
         let decodedMessage: protobuf.Message<{}> | null = null;
 
         // 파일 버퍼의 끝에 도달할 때까지 메시지를 디코딩합니다.
-        // 이 파일은 여러 메시지가 합쳐진 스트림일 수 있으므로, 첫 번째 유효한 메시지를 찾습니다.
+        // 파일 스트림에서 비어있지 않은 첫 번째 유효한 메시지를 찾습니다.
         while (reader.pos < reader.len) {
             try {
-                // decodeDelimited는 길이-접두사 형식의 메시지를 하나 읽습니다.
-                decodedMessage = HMIInfoPb.decodeDelimited(reader);
-                if (decodedMessage) {
-                    console.log('[DEBUG] Successfully decoded a message.');
-                    // 첫 번째 메시지를 성공적으로 디코딩했으면 루프를 중단합니다.
-                    break;
+                const tempMessage = HMIInfoPb.decodeDelimited(reader);
+                if (tempMessage) {
+                    const messageJSON = tempMessage.toJSON();
+                    // 디코딩된 객체에 키가 하나라도 있는지 확인하여 비어있지 않은지 검사합니다.
+                    if (Object.keys(messageJSON).length > 0) {
+                        console.log('[DEBUG] Successfully decoded a NON-EMPTY message.');
+                        decodedMessage = tempMessage;
+                        // 비어있지 않은 첫 메시지를 찾았으므로 루프를 중단합니다.
+                        break;
+                    } else {
+                        console.log('[DEBUG] Decoded an empty message, continuing to search...');
+                    }
                 }
             } catch (e) {
-                console.error('Error decoding a message segment, attempting to skip...', e);
-                // 오류 발생 시 다음 메시지로 넘어가기 위해 reader 위치를 조정해야 할 수 있으나,
-                // 단순화를 위해 여기서는 루프를 중단합니다.
+                console.error('Error decoding a message segment, stopping file read.', e);
+                // 디코딩 오류 발생 시 더 이상 진행하지 않고 루프를 중단합니다.
                 break;
             }
         }
 
         if (!decodedMessage) {
-            console.error("[ERROR] Failed to decode any valid message from the file.");
+            console.error("[ERROR] Failed to decode any valid non-empty message from the file.");
             return;
         }
 
