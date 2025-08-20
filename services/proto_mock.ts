@@ -49,7 +49,7 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
             console.log('[DEBUG] Attempting to decode the entire file buffer...');
             decodedMessage = HMIInfoPb.decode(fileBuffer);
         } catch (e) {
-            console.error(`[ERROR] Failed to decode the file buffer as a single message. Error: ${e.message}`);
+            console.error(`[ERROR] Failed to decode the file buffer as a single message. Error: ${e}`);
             // 단일 메시지 디코딩 실패 시 스트림으로 다시 시도해볼 수 있습니다.
             console.log('[DEBUG] Falling back to decoding as a delimited stream...');
             const reader = protobuf.Reader.create(fileBuffer);
