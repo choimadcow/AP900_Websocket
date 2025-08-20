@@ -42,39 +42,39 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
             return;
         }
 
-        const reader = protobuf.Reader.create(fileBuffer);
         let decodedMessage: protobuf.Message<{}> | null = null;
 
-        // 파일 버퍼의 끝에 도달할 때까지 메시지를 디코딩합니다.
-        // 파일 스트림에서 비어있지 않은 첫 번째 유효한 메시지를 찾습니다.
-        while (reader.pos < reader.len) {
-            try {
-                const tempMessage = HMIInfoPb.decodeDelimited(reader);
-                if (tempMessage) {
-                    const messageJSON = tempMessage.toJSON();
-                    // 디코딩된 객체에 키가 하나라도 있는지 확인하여 비어있지 않은지 검사합니다.
-                    if (Object.keys(messageJSON).length > 0) {
-                        console.log('[DEBUG] Successfully decoded a NON-EMPTY message.');
+        try {
+            // .out 파일이 length-delimited가 아닐 수 있으므로, 전체 버퍼를 decode하려고 시도합니다.
+            console.log('[DEBUG] Attempting to decode the entire file buffer...');
+            decodedMessage = HMIInfoPb.decode(fileBuffer);
+        } catch (e) {
+            console.error(`[ERROR] Failed to decode the file buffer as a single message. Error: ${e.message}`);
+            // 단일 메시지 디코딩 실패 시 스트림으로 다시 시도해볼 수 있습니다.
+            console.log('[DEBUG] Falling back to decoding as a delimited stream...');
+            const reader = protobuf.Reader.create(fileBuffer);
+            while (reader.pos < reader.len) {
+                try {
+                    const tempMessage = HMIInfoPb.decodeDelimited(reader);
+                    if (tempMessage && Object.keys(tempMessage.toJSON()).length > 0) {
                         decodedMessage = tempMessage;
-                        // 비어있지 않은 첫 메시지를 찾았으므로 루프를 중단합니다.
-                        break;
-                    } else {
-                        console.log('[DEBUG] Decoded an empty message, continuing to search...');
+                        console.log('[DEBUG] Successfully decoded a non-empty message from the stream.');
+                        break; // 첫 번째 유효한 메시지를 찾으면 중단
                     }
+                } catch (streamError) {
+                    console.error(`[ERROR] Error decoding a message segment from stream at position ${reader.pos}.`, streamError);
+                    break; // 스트림에서도 오류 발생 시 중단
                 }
-            } catch (e) {
-                console.error('Error decoding a message segment, stopping file read.', e);
-                // 디코딩 오류 발생 시 더 이상 진행하지 않고 루프를 중단합니다.
-                break;
             }
         }
 
-        if (!decodedMessage) {
+
+        if (!decodedMessage || Object.keys(decodedMessage.toJSON()).length === 0) {
             console.error("[ERROR] Failed to decode any valid non-empty message from the file.");
             return;
         }
 
-        console.log('[DEBUG] Decoded message object (JSON):', JSON.stringify(decodedMessage.toJSON(), null, 2));
+        console.log('[DEBUG] Successfully decoded message object (JSON):', JSON.stringify(decodedMessage.toJSON(), null, 2));
 
         const messageObject = HMIInfoPb.toObject(decodedMessage, {
             longs: String,
@@ -95,9 +95,7 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
         }
 
         // 수정된 JavaScript 객체를 다시 바이너리 데이터로 인코딩합니다.
-        // 클라이언트가 Delimited 형식을 기대할 수 있으므로 encodeDelimited를 사용합니다.
-        const writer = HMIInfoPb.encodeDelimited(messageObject);
-        const modifiedBuffer = writer.finish();
+        const modifiedBuffer = HMIInfoPb.encode(messageObject).finish();
 
 
         // 연결된 모든 클라이언트에게 수정된 바이너리 데이터 전송
