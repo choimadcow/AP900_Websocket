@@ -4,13 +4,18 @@ import * as protobuf from 'protobufjs';
 import { WebSocket } from 'ws';
 
 // .proto 파일 로딩 (최초 1회만 실행)
-const protoPath = path.join(__dirname, '../ws_test_code_20250623/HMI_T_Proto/HMI-T.proto'); // .proto 파일 경로 (상대 경로 주의)
+// HMI-T.proto 파일의 실제 경로로 수정했습니다.
+const protoPath = path.join(__dirname, '../ws_test_code_20250623/HMI_T_Proto/HMI-T.proto');
 let root: protobuf.Root;
 let HMIInfoPb: protobuf.Type;
 
 try {
     root = protobuf.loadSync(protoPath);
-    HMIInfoPb = root.lookupType("HMI-T.proto.HMIInfoPb");
+    // ------------------- [수정된 부분] -------------------
+    // 파일 이름이 아닌, .proto 파일 내부에 정의된 package 이름과 메시지 이름을 사용해야 합니다.
+    HMIInfoPb = root.lookupType("HMI_T.ETRI.protobuf.HMIInfoPb");
+    // ----------------------------------------------------
+
 } catch (e) {
     console.error("Error loading .proto file:", e);
 }
@@ -26,7 +31,7 @@ const outFilesDirectory = path.join(__dirname, '../ws_test_code_20250623');
  */
 export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName: string, maneuver?: string) => {
     if (!HMIInfoPb) {
-        console.error(".proto types not loaded. Cannot send data.");
+        console.error(".proto types not loaded. Cannot send data. Check .proto file path and package name.");
         return;
     }
 
@@ -51,6 +56,10 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
         }
 
         // 4. 수정된 JavaScript 객체를 다시 바이너리 데이터로 인코딩
+        const verificationError = HMIInfoPb.verify(messageObject);
+        if (verificationError) {
+            throw Error(verificationError);
+        }
         const modifiedBuffer = HMIInfoPb.encode(HMIInfoPb.create(messageObject)).finish();
 
         // 5. 연결된 모든 클라이언트에게 수정된 바이너리 데이터 전송
