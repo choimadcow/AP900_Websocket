@@ -5,7 +5,7 @@ import { WebSocket } from 'ws';
 
 // .proto 파일 로딩 (최초 1회만 실행)
 // HMI-T.proto 파일의 실제 경로로 수정했습니다.
-const protoPath = path.join(__dirname, '../ws_test_code_20250623/HMI_T_Proto/HMI-T.proto');
+const protoPath = path.join(__dirname, '../../ws_test_code_20250623/HMI_T_Proto/HMI-T.proto');
 let root: protobuf.Root;
 let HMIInfoPb: protobuf.Type;
 
@@ -21,7 +21,7 @@ try {
 }
 
 // .out 파일들이 있는 디렉토리 경로
-const outFilesDirectory = path.join(__dirname, '../ws_test_code_20250623');
+const outFilesDirectory = path.join(__dirname, '../../ws_test_code_20250623');
 
 /**
  * .out 파일을 읽고, 데이터를 수정한 뒤, 연결된 모든 웹소켓 클라이언트에게 전송합니다.
