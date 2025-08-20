@@ -30,6 +30,9 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
         console.error(".proto types not loaded. Cannot send data. Check .proto file path and package name.");
         return;
     }
+    console.log("===============================");
+    console.log(HMIInfoPb);
+    console.log("===============================");
 
     const filePath = path.join(outFilesDirectory, outFileName);
 
@@ -37,12 +40,28 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
         // 1. .out 파일 읽기 (바이너리 Buffer)
         const fileBuffer = fs.readFileSync(filePath);
 
-        // ------------------- [수정된 부분] -------------------
+        // ------------------- [진단 코드 추가 1] -------------------
+        // 읽어온 파일의 크기를 확인합니다. 0이면 파일이 비어있다는 의미입니다.
+        console.log("===============================");
+        console.log(`[진단] 읽어온 파일 '${outFileName}'의 크기: ${fileBuffer.length} bytes`);
+        console.log("===============================");
+        if (fileBuffer.length === 0) {
+            console.error("[진단] 파일이 비어있어 데이터를 처리할 수 없습니다.");
+            return;
+        }
+        // ---------------------------------------------------------
+
         // 파일 전체를 디코딩하는 대신, 여러 메시지가 붙어있는 스트림으로 간주하고
         // 길이 정보가 포함된 첫 번째 메시지만 읽어옵니다.
         const reader = protobuf.Reader.create(fileBuffer);
         const decodedMessage = HMIInfoPb.decodeDelimited(reader);
-        // ----------------------------------------------------
+
+        // ------------------- [진단 코드 추가 2] -------------------
+        // 디코딩된 객체의 내용을 확인합니다. 빈 객체라면 디코딩에 실패한 것입니다.
+        console.log("===============================");
+        console.log('[진단] 디코딩된 메시지 객체:', JSON.stringify(decodedMessage.toJSON(), null, 2));
+        console.log("===============================");
+        // ---------------------------------------------------------
 
         const messageObject = HMIInfoPb.toObject(decodedMessage, {
             longs: String,
