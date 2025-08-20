@@ -44,15 +44,18 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
 
         let decodedMessage: protobuf.Message<{}> | null = null;
 
-        // HMIInfoPb 메시지의 첫 번째 필드(dispInfo, id=1)의 태그 값은 0x0A 입니다.
+        // HMIInfoPb 메시지의 첫 번째 필드(dispInfo, id=1, wire type 2)의 태그 값은 (1 << 3) | 2 = 0x0A 입니다.
         // 이 값을 기준으로 파일 내에서 메시지 시작 위치를 검색합니다.
         const startTag = 0x0A;
-        let startIndex = -1;
 
         for (let i = 0; i < fileBuffer.length; i++) {
+            // startTag를 찾으면 해당 위치를 잠재적인 시작점으로 간주합니다.
             if (fileBuffer[i] === startTag) {
-                startIndex = i;
-                console.log(`[DEBUG] Found potential message start tag at offset ${startIndex}`);
+                const startIndex = i;
+                // 디버깅을 위해 주변 20바이트의 16진수 데이터를 출력합니다.
+                const hexData = fileBuffer.slice(startIndex, startIndex + 20).toString('hex').match(/.{1,2}/g)?.join(' ');
+                console.log(`[DEBUG] Found potential message start tag 0x${startTag.toString(16)} at offset ${startIndex}. Data: [ ${hexData} ]`);
+
                 try {
                     // 찾은 시작 위치부터 버퍼를 잘라내어 디코딩을 시도합니다.
                     const messageBuffer = fileBuffer.slice(startIndex);
@@ -60,22 +63,22 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
 
                     if (tempMessage && Object.keys(tempMessage.toJSON()).length > 0) {
                         decodedMessage = tempMessage;
-                        console.log('[DEBUG] Successfully decoded a non-empty message from the found offset.');
+                        console.log(`[SUCCESS] Successfully decoded a non-empty message starting from offset ${startIndex}.`);
                         break; // 유효한 메시지를 찾았으므로 검색을 중단합니다.
                     }
                 } catch (e) {
-                    console.log(`[DEBUG] Decoding failed at offset ${startIndex}, continuing search... Error: ${e}`);
                     // 디코딩에 실패하면, 다음 시작 태그를 찾아 계속 진행합니다.
+                    console.log(`[INFO] Decoding failed at offset ${startIndex}, continuing search... Error: ${e.message}`);
                 }
             }
         }
 
         if (!decodedMessage) {
-            console.error("[ERROR] Failed to find and decode any valid message from the file.");
+            console.error("[ERROR] Failed to find and decode any valid message from the file. Please check if the .proto schema matches the binary data file.");
             return;
         }
 
-        console.log('[DEBUG] Successfully decoded message object (JSON):', JSON.stringify(decodedMessage.toJSON(), null, 2));
+        console.log('[SUCCESS] Final decoded message object (JSON):', JSON.stringify(decodedMessage.toJSON(), null, 2));
 
         const messageObject = HMIInfoPb.toObject(decodedMessage, {
             longs: String,
