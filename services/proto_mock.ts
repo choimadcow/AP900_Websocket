@@ -11,11 +11,7 @@ let HMIInfoPb: protobuf.Type;
 
 try {
     root = protobuf.loadSync(protoPath);
-    // ------------------- [수정된 부분] -------------------
-    // 파일 이름이 아닌, .proto 파일 내부에 정의된 package 이름과 메시지 이름을 사용해야 합니다.
     HMIInfoPb = root.lookupType("HMI_T.ETRI.protobuf.HMIInfoPb");
-    // ----------------------------------------------------
-
 } catch (e) {
     console.error("Error loading .proto file:", e);
 }
@@ -41,8 +37,13 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
         // 1. .out 파일 읽기 (바이너리 Buffer)
         const fileBuffer = fs.readFileSync(filePath);
 
-        // 2. 바이너리 데이터를 JavaScript 객체로 디코딩
-        const decodedMessage = HMIInfoPb.decode(fileBuffer);
+        // ------------------- [수정된 부분] -------------------
+        // 파일 전체를 디코딩하는 대신, 여러 메시지가 붙어있는 스트림으로 간주하고
+        // 길이 정보가 포함된 첫 번째 메시지만 읽어옵니다.
+        const reader = protobuf.Reader.create(fileBuffer);
+        const decodedMessage = HMIInfoPb.decodeDelimited(reader);
+        // ----------------------------------------------------
+
         const messageObject = HMIInfoPb.toObject(decodedMessage, {
             longs: String,
             enums: String,
