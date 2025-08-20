@@ -44,33 +44,34 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
 
         let decodedMessage: protobuf.Message<{}> | null = null;
 
-        try {
-            // .out 파일이 length-delimited가 아닐 수 있으므로, 전체 버퍼를 decode하려고 시도합니다.
-            console.log('[DEBUG] Attempting to decode the entire file buffer...');
-            decodedMessage = HMIInfoPb.decode(fileBuffer);
-        } catch (e) {
-            console.error(`[ERROR] Failed to decode the file buffer as a single message. Error: ${e}`);
-            // 단일 메시지 디코딩 실패 시 스트림으로 다시 시도해볼 수 있습니다.
-            console.log('[DEBUG] Falling back to decoding as a delimited stream...');
-            const reader = protobuf.Reader.create(fileBuffer);
-            while (reader.pos < reader.len) {
+        // HMIInfoPb 메시지의 첫 번째 필드(dispInfo, id=1)의 태그 값은 0x0A 입니다.
+        // 이 값을 기준으로 파일 내에서 메시지 시작 위치를 검색합니다.
+        const startTag = 0x0A;
+        let startIndex = -1;
+
+        for (let i = 0; i < fileBuffer.length; i++) {
+            if (fileBuffer[i] === startTag) {
+                startIndex = i;
+                console.log(`[DEBUG] Found potential message start tag at offset ${startIndex}`);
                 try {
-                    const tempMessage = HMIInfoPb.decodeDelimited(reader);
+                    // 찾은 시작 위치부터 버퍼를 잘라내어 디코딩을 시도합니다.
+                    const messageBuffer = fileBuffer.slice(startIndex);
+                    const tempMessage = HMIInfoPb.decode(messageBuffer);
+
                     if (tempMessage && Object.keys(tempMessage.toJSON()).length > 0) {
                         decodedMessage = tempMessage;
-                        console.log('[DEBUG] Successfully decoded a non-empty message from the stream.');
-                        break; // 첫 번째 유효한 메시지를 찾으면 중단
+                        console.log('[DEBUG] Successfully decoded a non-empty message from the found offset.');
+                        break; // 유효한 메시지를 찾았으므로 검색을 중단합니다.
                     }
-                } catch (streamError) {
-                    console.error(`[ERROR] Error decoding a message segment from stream at position ${reader.pos}.`, streamError);
-                    break; // 스트림에서도 오류 발생 시 중단
+                } catch (e) {
+                    console.log(`[DEBUG] Decoding failed at offset ${startIndex}, continuing search... Error: ${e}`);
+                    // 디코딩에 실패하면, 다음 시작 태그를 찾아 계속 진행합니다.
                 }
             }
         }
 
-
-        if (!decodedMessage || Object.keys(decodedMessage.toJSON()).length === 0) {
-            console.error("[ERROR] Failed to decode any valid non-empty message from the file.");
+        if (!decodedMessage) {
+            console.error("[ERROR] Failed to find and decode any valid message from the file.");
             return;
         }
 
