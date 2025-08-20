@@ -68,7 +68,7 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
                     }
                 } catch (e) {
                     // 디코딩에 실패하면, 다음 시작 태그를 찾아 계속 진행합니다.
-                    console.log(`[INFO] Decoding failed at offset ${startIndex}, continuing search... Error: ${e.message}`);
+                    console.log(`[INFO] Decoding failed at offset ${startIndex}, continuing search... Error: ${e}`);
                 }
             }
         }
