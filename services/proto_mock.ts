@@ -10,7 +10,7 @@ const outFilesDirectory = path.join(__dirname, '../../ws_test_code_20250623');
  * @param clients - 전송 대상인 웹소켓 클라이언트 Set
  * @param outFileName - 읽어올 .out 파일 이름 (예: 'WS_read.out')
  */
-export const broadcastRawProtoFile = (clients: Set<WebSocket>, outFileName: string) => {
+export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName: string) => {
     const filePath = path.join(outFilesDirectory, outFileName);
 
     try {
