@@ -32,8 +32,12 @@ import {
     changeStatus,
     SENSOR_FAIL_CODES,
     createDriverMessageEvent,
-    changeSpeed, changeLaneChange
+    changeSpeed, changeLaneChange,
 } from './services/mock-data';
+
+import {
+    createAndBroadcastProtoData
+} from './services/proto_mock';
 
 let timer: NodeJS.Timeout | null = null;
 let timer2: NodeJS.Timeout | null = null;
@@ -148,6 +152,18 @@ app.get("/:param", (req, res) => {
         case 'error':
             broadcastMessage('error command received'); // Changed from io.emit
             res.send('error command sent');
+            break;
+        case 'proto':
+            const fileName = (req.query.file as string) || 'WS_read.out';
+            const maneuver = req.query.maneuver as string | undefined;
+
+            if (!clients || clients.size === 0) {
+                return res.status(400).send('No connected clients.');
+            }
+
+            createAndBroadcastProtoData(clients, fileName, maneuver);
+            res.send(`proto command sent with file: ${fileName}`);
+            break;
             break;
         default:
             res.status(400).send('Invalid parameter');
