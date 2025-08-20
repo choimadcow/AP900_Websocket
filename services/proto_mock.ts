@@ -4,13 +4,13 @@ import * as protobuf from 'protobufjs';
 import { WebSocket } from 'ws';
 
 // .proto 파일 로딩 (최초 1회만 실행)
-// HMI-T.proto 파일의 실제 경로로 수정했습니다.
 const protoPath = path.join(__dirname, '../../ws_test_code_20250623/HMI_T_Proto/HMI-T.proto');
 let root: protobuf.Root;
 let HMIInfoPb: protobuf.Type;
 
 try {
     root = protobuf.loadSync(protoPath);
+    // .proto 파일의 패키지 이름과 메시지 이름을 정확히 확인해야 합니다.
     HMIInfoPb = root.lookupType("HMI_T.ETRI.protobuf.HMIInfoPb");
 } catch (e) {
     console.error("Error loading .proto file:", e);
@@ -30,44 +30,46 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
         console.error(".proto types not loaded. Cannot send data. Check .proto file path and package name.");
         return;
     }
-    console.log("===============================");
-    console.log(HMIInfoPb);
-    console.log("===============================");
 
     const filePath = path.join(outFilesDirectory, outFileName);
 
     try {
-        // 1. .out 파일 읽기 (바이너리 Buffer)
         const fileBuffer = fs.readFileSync(filePath);
+        console.log(`[DEBUG] Read file '${outFileName}' with size: ${fileBuffer.length} bytes`);
 
-        // ------------------- [진단 코드 추가 1] -------------------
-        // 읽어온 파일의 크기를 확인합니다. 0이면 파일이 비어있다는 의미입니다.
-        console.log("===============================");
-        console.log(`[진단] 읽어온 파일 '${outFileName}'의 크기: ${fileBuffer.length} bytes`);
-        console.log("===============================");
         if (fileBuffer.length === 0) {
-            console.error("[진단] 파일이 비어있어 데이터를 처리할 수 없습니다.");
+            console.error("[ERROR] File is empty. Cannot process data.");
             return;
         }
-        // ---------------------------------------------------------
 
-        // 파일 전체를 디코딩하는 대신, 여러 메시지가 붙어있는 스트림으로 간주하고
-        // 길이 정보가 포함된 첫 번째 메시지만 읽어옵니다.
         const reader = protobuf.Reader.create(fileBuffer);
-        console.log("===============================");
-        console.log(`reader\n${reader}`);
-        console.log("===============================");
-        const decodedMessage = HMIInfoPb.decodeDelimited(reader);
-        console.log("===============================");
-        console.log(`decodedMessage\n${decodedMessage}`);
-        console.log("===============================");
+        let decodedMessage: protobuf.Message<{}> | null = null;
 
-        // ------------------- [진단 코드 추가 2] -------------------
-        // 디코딩된 객체의 내용을 확인합니다. 빈 객체라면 디코딩에 실패한 것입니다.
-        console.log("===============================");
-        console.log('[진단] 디코딩된 메시지 객체:', JSON.stringify(decodedMessage.toJSON(), null, 2));
-        console.log("===============================");
-        // ---------------------------------------------------------
+        // 파일 버퍼의 끝에 도달할 때까지 메시지를 디코딩합니다.
+        // 이 파일은 여러 메시지가 합쳐진 스트림일 수 있으므로, 첫 번째 유효한 메시지를 찾습니다.
+        while (reader.pos < reader.len) {
+            try {
+                // decodeDelimited는 길이-접두사 형식의 메시지를 하나 읽습니다.
+                decodedMessage = HMIInfoPb.decodeDelimited(reader);
+                if (decodedMessage) {
+                    console.log('[DEBUG] Successfully decoded a message.');
+                    // 첫 번째 메시지를 성공적으로 디코딩했으면 루프를 중단합니다.
+                    break;
+                }
+            } catch (e) {
+                console.error('Error decoding a message segment, attempting to skip...', e);
+                // 오류 발생 시 다음 메시지로 넘어가기 위해 reader 위치를 조정해야 할 수 있으나,
+                // 단순화를 위해 여기서는 루프를 중단합니다.
+                break;
+            }
+        }
+
+        if (!decodedMessage) {
+            console.error("[ERROR] Failed to decode any valid message from the file.");
+            return;
+        }
+
+        console.log('[DEBUG] Decoded message object (JSON):', JSON.stringify(decodedMessage.toJSON(), null, 2));
 
         const messageObject = HMIInfoPb.toObject(decodedMessage, {
             longs: String,
@@ -75,29 +77,34 @@ export const createAndBroadcastProtoData = (clients: Set<WebSocket>, outFileName
             bytes: String,
         });
 
-        // 3. 데이터 수정 (maneuver 값이 주어진 경우)
+        // 데이터 수정 (maneuver 값이 주어진 경우)
         if (maneuver && messageObject.dispInfo && messageObject.dispInfo.TurnByTurnInfo) {
-            console.log(`Maneuver 변경: ${messageObject.dispInfo.TurnByTurnInfo.maneuver} -> ${maneuver}`);
+            console.log(`[DEBUG] Changing maneuver from '${messageObject.dispInfo.TurnByTurnInfo.maneuver}' to '${maneuver}'`);
             messageObject.dispInfo.TurnByTurnInfo.maneuver = maneuver;
         }
 
-        // 4. 수정된 JavaScript 객체를 다시 바이너리 데이터로 인코딩
         const verificationError = HMIInfoPb.verify(messageObject);
         if (verificationError) {
+            console.error("[ERROR] Message verification failed:", verificationError);
             throw Error(verificationError);
         }
-        const modifiedBuffer = HMIInfoPb.encode(HMIInfoPb.create(messageObject)).finish();
 
-        // 5. 연결된 모든 클라이언트에게 수정된 바이너리 데이터 전송
+        // 수정된 JavaScript 객체를 다시 바이너리 데이터로 인코딩합니다.
+        // 클라이언트가 Delimited 형식을 기대할 수 있으므로 encodeDelimited를 사용합니다.
+        const writer = HMIInfoPb.encodeDelimited(messageObject);
+        const modifiedBuffer = writer.finish();
+
+
+        // 연결된 모든 클라이언트에게 수정된 바이너리 데이터 전송
         clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send(modifiedBuffer);
             }
         });
 
-        console.log(`'${outFileName}' 파일 기반의 Proto 데이터 (${modifiedBuffer.length} bytes)를 모든 클라이언트에게 전송했습니다.`);
+        console.log(`Successfully sent proto data (${modifiedBuffer.length} bytes) based on '${outFileName}' to all clients.`);
 
     } catch (error) {
-        console.error(`'${filePath}' 처리 중 오류 발생:`, error);
+        console.error(`An error occurred while processing '${filePath}':`, error);
     }
 };

@@ -164,7 +164,6 @@ app.get("/:param", (req, res) => {
             createAndBroadcastProtoData(clients, fileName, maneuver);
             res.send(`proto command sent with file: ${fileName}`);
             break;
-            break;
         default:
             res.status(400).send('Invalid parameter');
     }
