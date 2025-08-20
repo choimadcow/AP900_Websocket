@@ -4,19 +4,19 @@ import * as protobuf from 'protobufjs';
 import { WebSocket } from 'ws';
 
 // .proto 파일 로딩 (최초 1회만 실행)
-const protoPath = path.join(__dirname, '../../HMI_T.ETRI.protobuf'); // .proto 파일 경로 (상대 경로 주의)
+const protoPath = path.join(__dirname, '../ws_test_code_20250623/HMI_T_Proto/HMI-T.proto'); // .proto 파일 경로 (상대 경로 주의)
 let root: protobuf.Root;
 let HMIInfoPb: protobuf.Type;
 
 try {
     root = protobuf.loadSync(protoPath);
-    HMIInfoPb = root.lookupType("HMI_T.ETRI.protobuf.HMIInfoPb");
+    HMIInfoPb = root.lookupType("HMI-T.proto.HMIInfoPb");
 } catch (e) {
     console.error("Error loading .proto file:", e);
 }
 
 // .out 파일들이 있는 디렉토리 경로
-const outFilesDirectory = path.join(__dirname, '../../ws_test_code_20250623');
+const outFilesDirectory = path.join(__dirname, '../ws_test_code_20250623');
 
 /**
  * .out 파일을 읽고, 데이터를 수정한 뒤, 연결된 모든 웹소켓 클라이언트에게 전송합니다.

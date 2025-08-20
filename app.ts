@@ -154,7 +154,7 @@ app.get("/:param", (req, res) => {
             res.send('error command sent');
             break;
         case 'proto':
-            const fileName = (req.query.file as string) || 'WS_read.out';
+            const fileName = 'WS_read.out';
             const maneuver = req.query.maneuver as string | undefined;
 
             if (!clients || clients.size === 0) {
