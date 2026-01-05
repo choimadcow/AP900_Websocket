@@ -91,6 +91,20 @@ app.post("/system-shutdown", (req: Request, res: Response) => {
     
     // 서브넷별 클라이언트 그룹 가져오기
     const clientsBySubnet = req.app.get('clientsBySubnet') as Map<string, Set<ExtendedWebSocket>>;
+    const clients = req.app.get('clients') as Set<ExtendedWebSocket>;
+    
+    // 디버깅: 현재 연결된 모든 클라이언트 정보 출력
+    console.log("=== 현재 연결된 모든 WebSocket 클라이언트 ===");
+    console.log(`총 클라이언트 수: ${clients?.size || 0}`);
+    if (clientsBySubnet) {
+        clientsBySubnet.forEach((clientSet, subnet) => {
+            console.log(`  서브넷 ${subnet}: ${clientSet.size}개 클라이언트`);
+            clientSet.forEach((client: ExtendedWebSocket) => {
+                console.log(`    - IP: ${client.clientIP}`);
+            });
+        });
+    }
+    console.log("============================================");
     
     if (!clientsBySubnet) {
         console.error("clientsBySubnet이 설정되지 않았습니다.");
