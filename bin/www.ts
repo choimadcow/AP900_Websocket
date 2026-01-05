@@ -51,8 +51,19 @@ interface ExtendedWebSocket extends WebSocket {
 }
 
 wss.on('connection', (ws: ExtendedWebSocket, req: IncomingMessage) => {
-  // 클라이언트 IP 가져오기
-  const clientIP = req.socket.remoteAddress || 'unknown';
+  // 프록시(Nginx, CloudFlare 등)를 통해 들어오는 경우 X-Forwarded-For 헤더 사용
+  const forwardedFor = req.headers['x-forwarded-for'];
+  let clientIP: string;
+  
+  if (forwardedFor) {
+    // X-Forwarded-For는 "client, proxy1, proxy2" 형식일 수 있음
+    clientIP = Array.isArray(forwardedFor) 
+      ? forwardedFor[0] 
+      : forwardedFor.split(',')[0].trim();
+  } else {
+    clientIP = req.socket.remoteAddress || 'unknown';
+  }
+  
   const subnet = getSubnet(clientIP);
   
   // WebSocket 객체에 IP와 서브넷 정보 저장

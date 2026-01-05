@@ -83,8 +83,19 @@ app.get("/auto-start", (req: Request, res: Response) => {
 app.post("/system-shutdown", (req: Request, res: Response) => {
     console.log("시스템 종료 요청 수신");
     
-    // 요청자의 IP 주소 가져오기
-    const requestIP = req.ip || req.socket.remoteAddress || 'unknown';
+    // 프록시(Nginx, CloudFlare 등)를 통해 들어오는 경우 X-Forwarded-For 헤더 사용
+    const forwardedFor = req.headers['x-forwarded-for'];
+    let requestIP: string;
+    
+    if (forwardedFor) {
+        // X-Forwarded-For는 "client, proxy1, proxy2" 형식일 수 있음
+        requestIP = Array.isArray(forwardedFor) 
+            ? forwardedFor[0] 
+            : forwardedFor.split(',')[0].trim();
+    } else {
+        requestIP = req.ip || req.socket.remoteAddress || 'unknown';
+    }
+    
     const requestSubnet = getSubnet(requestIP);
     
     console.log(`요청자 IP: ${requestIP}, Subnet: ${requestSubnet}`);
