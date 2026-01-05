@@ -7,11 +7,13 @@
 import app from '../app';
 import debug from 'debug';
 import http from 'http';
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer, WebSocket, RawData } from 'ws';
+import { IncomingMessage } from 'http';
 import monitoringRouter from "../routes/monitoring";
 import {setErrorInfo, setPassengerCount} from "../state";
 
 const log = debug('ap900-websocket:server');
+
 /**
  * Get port from environment and store in Express.
  */
@@ -28,11 +30,48 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 const clients = new Set<WebSocket>(); // To store connected WebSocket clients
 
-wss.on('connection', (ws: WebSocket) => {
-  clients.add(ws);
-  console.log('A WebSocket client connected');
+// 서브넷별 클라이언트 그룹 관리
+const clientsBySubnet = new Map<string, Set<WebSocket>>();
 
-  ws.on('message', (message: Buffer) => {
+// IP에서 서브넷 추출 (C클래스 기준: xxx.xxx.xxx.0)
+const getSubnet = (ip: string): string => {
+  // IPv4 매핑된 IPv6 주소 처리 (::ffff:192.168.1.1 → 192.168.1.1)
+  const cleanIP = ip.replace(/^::ffff:/, '');
+  const parts = cleanIP.split('.');
+  if (parts.length === 4) {
+    return `${parts[0]}.${parts[1]}.${parts[2]}.0`;
+  }
+  return cleanIP; // IPv6는 그대로 반환
+};
+
+// WebSocket에 subnet 속성 추가를 위한 타입 확장
+interface ExtendedWebSocket extends WebSocket {
+  subnet?: string;
+  clientIP?: string;
+}
+
+wss.on('connection', (ws: ExtendedWebSocket, req: IncomingMessage) => {
+  // 클라이언트 IP 가져오기
+  const clientIP = req.socket.remoteAddress || 'unknown';
+  const subnet = getSubnet(clientIP);
+  
+  // WebSocket 객체에 IP와 서브넷 정보 저장
+  ws.clientIP = clientIP;
+  ws.subnet = subnet;
+  
+  // 전체 클라이언트 Set에 추가
+  clients.add(ws);
+  
+  // 서브넷별 그룹에 추가
+  if (!clientsBySubnet.has(subnet)) {
+    clientsBySubnet.set(subnet, new Set<WebSocket>());
+  }
+  clientsBySubnet.get(subnet)!.add(ws);
+  
+  console.log(`WebSocket 클라이언트 연결: IP=${clientIP}, Subnet=${subnet}`);
+  console.log(`현재 연결된 클라이언트 수: ${clients.size}`);
+
+  ws.on('message', (message: RawData) => {
     // Handle messages from clients if needed
     console.log('Received message from client:', message.toString());
 
@@ -67,8 +106,20 @@ wss.on('connection', (ws: WebSocket) => {
   });
 
   ws.on('close', () => {
+    // 전체 클라이언트 Set에서 제거
     clients.delete(ws);
-    console.log('A WebSocket client disconnected');
+    
+    // 서브넷별 그룹에서 제거
+    if (ws.subnet && clientsBySubnet.has(ws.subnet)) {
+      clientsBySubnet.get(ws.subnet)!.delete(ws);
+      // 빈 그룹은 삭제
+      if (clientsBySubnet.get(ws.subnet)!.size === 0) {
+        clientsBySubnet.delete(ws.subnet);
+      }
+    }
+    
+    console.log(`WebSocket 클라이언트 연결 종료: IP=${ws.clientIP}, Subnet=${ws.subnet}`);
+    console.log(`현재 연결된 클라이언트 수: ${clients.size}`);
   });
 
   ws.on('error', (error: Error) => {
@@ -78,6 +129,7 @@ wss.on('connection', (ws: WebSocket) => {
 
 app.set('wss', wss);
 app.set('clients', clients);
+app.set('clientsBySubnet', clientsBySubnet);  // 서브넷별 클라이언트 그룹도 app에 저장
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -145,4 +197,17 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + (addr ? addr.port : '');
   log('Listening on ' + bind);
+}
+
+// 타입 정의 (기존 코드에 있던 것으로 추정)
+interface HMIInfoPb {
+  event?: {
+    eventType: number;
+    Content: string;
+  };
+}
+
+interface ContentData {
+  type: string;
+  value: string | number;
 }

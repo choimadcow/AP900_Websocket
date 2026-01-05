@@ -4,6 +4,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import cors from 'cors'; // CORS 미들웨어 추가
+import { WebSocket } from 'ws';
 
 // import indexRouter from './routes/index';
 import usersRouter from './routes/users';
@@ -42,6 +43,23 @@ import {
 let timer: NodeJS.Timeout | null = null;
 let timer2: NodeJS.Timeout | null = null;
 
+// WebSocket에 subnet 속성 추가를 위한 타입 확장
+interface ExtendedWebSocket extends WebSocket {
+    subnet?: string;
+    clientIP?: string;
+}
+
+// IP에서 서브넷 추출 (C클래스 기준: xxx.xxx.xxx.0)
+const getSubnet = (ip: string): string => {
+    // IPv4 매핑된 IPv6 주소 처리 (::ffff:192.168.1.1 → 192.168.1.1)
+    const cleanIP = ip.replace(/^::ffff:/, '');
+    const parts = cleanIP.split('.');
+    if (parts.length === 4) {
+        return `${parts[0]}.${parts[1]}.${parts[2]}.0`;
+    }
+    return cleanIP; // IPv6는 그대로 반환
+};
+
 app.get("/auto-start", (req: Request, res: Response) => {
     console.log("자율주행 운행 시작!");
     const clients = req.app.get('clients');
@@ -58,21 +76,51 @@ app.get("/auto-start", (req: Request, res: Response) => {
     res.status(200).json({ message: "Auto-start command sent successfully." });
 });
 
+/**
+ * 🔴 수정된 시스템 종료 엔드포인트
+ * 요청자와 같은 서브넷의 클라이언트에게만 system_shutdown 메시지 전송
+ */
 app.post("/system-shutdown", (req: Request, res: Response) => {
-    console.log("시스템 종료");
-    const clients = req.app.get('clients');
-
-    const broadcastMessage = (message: string) => {
-        clients.forEach((client: any) => { // client type is WebSocket from 'ws'
-            if (client.readyState === client.OPEN) {
-                client.send(message);
+    console.log("시스템 종료 요청 수신");
+    
+    // 요청자의 IP 주소 가져오기
+    const requestIP = req.ip || req.socket.remoteAddress || 'unknown';
+    const requestSubnet = getSubnet(requestIP);
+    
+    console.log(`요청자 IP: ${requestIP}, Subnet: ${requestSubnet}`);
+    
+    // 서브넷별 클라이언트 그룹 가져오기
+    const clientsBySubnet = req.app.get('clientsBySubnet') as Map<string, Set<ExtendedWebSocket>>;
+    
+    if (!clientsBySubnet) {
+        console.error("clientsBySubnet이 설정되지 않았습니다.");
+        res.status(500).json({ message: "Server configuration error." });
+        return;
+    }
+    
+    // 같은 서브넷의 클라이언트들에게만 전송
+    const sameSubnetClients = clientsBySubnet.get(requestSubnet);
+    
+    if (sameSubnetClients && sameSubnetClients.size > 0) {
+        let sentCount = 0;
+        sameSubnetClients.forEach((client: ExtendedWebSocket) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send("system_shutdown");
+                sentCount++;
+                console.log(`system_shutdown 전송: IP=${client.clientIP}`);
             }
         });
-    };
-
-    broadcastMessage("system_shutdown");
-    res.status(200).json({ message: "system shutdown command sent successfully." });
-})
+        console.log(`같은 서브넷(${requestSubnet})의 ${sentCount}개 클라이언트에게 system_shutdown 전송 완료`);
+        res.status(200).json({ 
+            message: `system shutdown command sent to ${sentCount} clients in subnet ${requestSubnet}.` 
+        });
+    } else {
+        console.log(`서브넷 ${requestSubnet}에 연결된 클라이언트가 없습니다.`);
+        res.status(200).json({ 
+            message: `No clients found in subnet ${requestSubnet}.` 
+        });
+    }
+});
 
 app.get("/auto-stop", (req: Request, res: Response) => {
     console.log("자율주행 운행 종료!");
